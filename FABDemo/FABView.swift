@@ -213,33 +213,33 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         setTranslatesAutoresizingMaskIntoConstraints(false)
         self.layoutMargins = UIEdgeInsetsZero
         
-        _touchHighlightRecognizer.minimumPressDuration = 0.01
-        _touchHighlightRecognizer.delegate = self
-        _touchHighlightRecognizer.addTarget(self, action: Selector("touchHighlightAction:"))
-        self.addGestureRecognizer(_touchHighlightRecognizer)
+//        _touchHighlightRecognizer.minimumPressDuration = 0.01
+//        _touchHighlightRecognizer.delegate = self
+//        _touchHighlightRecognizer.addTarget(self, action: Selector("touchHighlightAction:"))
+//        self.addGestureRecognizer(_touchHighlightRecognizer)
+//        
+//        _longTouchExpandRecognizer.minimumPressDuration = 0.5
+//        _longTouchExpandRecognizer.delegate = self
+//        _longTouchExpandRecognizer.addTarget(self, action: Selector("expandRecognizerAction:"))
+//        self.addGestureRecognizer(_longTouchExpandRecognizer)
+//        
+//        _longTouchContractRecognizer.minimumPressDuration = 0.5
+//        _longTouchContractRecognizer.delegate = self
+//        _longTouchContractRecognizer.addTarget(self, action: Selector("contractRecognizerAction:"))
+//        _longTouchContractRecognizer.enabled = false
+//        self.addGestureRecognizer(_longTouchContractRecognizer)
+//        
+//        _doubleTapIconContractRecognizer.minimumPressDuration = 0.01
+//        _doubleTapIconContractRecognizer.numberOfTapsRequired = 1
+//        _doubleTapIconContractRecognizer.delegate = self
+//        _doubleTapIconContractRecognizer.addTarget(self, action: Selector("contractRecognizerAction:"))
+//        _doubleTapIconContractRecognizer.enabled = false
+//        self.addGestureRecognizer(_doubleTapIconContractRecognizer)
         
-        _longTouchExpandRecognizer.minimumPressDuration = 0.5
-        _longTouchExpandRecognizer.delegate = self
-        _longTouchExpandRecognizer.addTarget(self, action: Selector("expandRecognizerAction:"))
-        self.addGestureRecognizer(_longTouchExpandRecognizer)
-        
-        _longTouchContractRecognizer.minimumPressDuration = 0.5
-        _longTouchContractRecognizer.delegate = self
-        _longTouchContractRecognizer.addTarget(self, action: Selector("contractRecognizerAction:"))
-        _longTouchContractRecognizer.enabled = false
-        self.addGestureRecognizer(_longTouchContractRecognizer)
-        
-        _doubleTapIconContractRecognizer.minimumPressDuration = 0.01
-        _doubleTapIconContractRecognizer.numberOfTapsRequired = 1
-        _doubleTapIconContractRecognizer.delegate = self
-        _doubleTapIconContractRecognizer.addTarget(self, action: Selector("contractRecognizerAction:"))
-        _doubleTapIconContractRecognizer.enabled = false
-        self.addGestureRecognizer(_doubleTapIconContractRecognizer)
-        
-        //_panGestureRecognizer.addTarget(self, action: Selector("panGestureAction:"))
-        //self.addGestureRecognizer(_panGestureRecognizer)
+        _panGestureRecognizer.addTarget(self, action: Selector("panGestureAction:"))
+        self.addGestureRecognizer(_panGestureRecognizer)
 
-        self.setupNormalAndHighlightImages()
+        self.setupNormalAndHighlightBackgroundImages()
         self.layer.contentsScale = UIScreen.mainScreen().scale
         
         self.layer.addSublayer(_mainContainerLayer)
@@ -252,7 +252,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         _contentLayer.needsDisplayOnBoundsChange = false
         _contentLayer.contentsScale = UIScreen.mainScreen().scale
 
-        let (mask, gradientWidth) = self.setupLeftGradientMaskImage(contentSize)
+        let (mask, gradientWidth) = self.createLeftGradientMaskImage(contentSize)
         _contentLeftGradientMaskLayer.contents = mask.CGImage
         _contentLeftGradientMaskLayer.contentsScale = UIScreen.mainScreen().scale
         _contentLeftGradientMaskLayer.frame = CGRectMake(0, 0, contentSize.width, contentSize.height)
@@ -269,14 +269,14 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         _mainContainerLayer.setup(contentSize, gradientWidth: gradientWidth, fabSize: _fabSize, fabMargin: _fabMargin)
         _mainContainerLayer._scrollContainerLayer.frame = CGRectMake(-(contentSize.width - _fabSize/2 - _fabMargin) - _fabIconToContentMargin, ((_fabSize + _fabMargin*2)/2 - contentSize.height/2), contentSize.width, contentSize.height)
         
-        _iconLayer.contents = UIImage(named:"ic_add_black_ios_24dp")?.CGImage
+        _iconLayer.contents = self.createIconImage()?.CGImage
         _iconLayer.contentsGravity = kCAGravityCenter
         _iconLayer.contentsScale = UIScreen.mainScreen().scale
         _mainContainerLayer.addSublayer(_iconLayer)
         
     }
     
-    func setupNormalAndHighlightImages() {
+    func setupNormalAndHighlightBackgroundImages() {
         
         let size = CGSizeMake(_fabSize, _fabSize)
         let bound = CGSizeMake(_fabSize + (_fabMargin*2), _fabSize + (_fabMargin*2))
@@ -313,7 +313,27 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         
     }
     
-    func setupLeftGradientMaskImage(maskSize: CGSize) -> (UIImage, CGFloat) {
+    func createIconImage() -> UIImage? {
+        let loadedImage = UIImage(named:"ic_add_black_ios_24dp")
+        if loadedImage == nil {
+            return nil
+        }
+        let image = loadedImage!
+        var ctx:CGContextRef? = nil
+        let imageRect = CGRectMake(0, 0, image.size.width, image.size.height)
+        
+        UIGraphicsBeginImageContextWithOptions(imageRect.size, false, 0)
+        ctx = UIGraphicsGetCurrentContext()!
+        CGContextSetFillColorWithColor(ctx, UIColor.whiteColor().CGColor)
+        CGContextClipToMask(ctx, imageRect, image.CGImage)
+        CGContextFillRect(ctx, imageRect)
+        let maskedImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        
+        return maskedImage
+    }
+    
+    func createLeftGradientMaskImage(maskSize: CGSize) -> (UIImage, CGFloat) {
         
         let gradientWidth:CGFloat = 0.2
         UIGraphicsBeginImageContextWithOptions(maskSize, false, 0)
@@ -391,13 +411,15 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
             weak var weakSelf = self
             weak var weakBlockOperation = blockOperation
             
-            func execution() -> Void {
+            blockOperation.addExecutionBlock({() in
                 if weakBlockOperation != nil && weakBlockOperation!.cancelled {
                     return
                 }
                 
-                _highlightStateQueue?.cancelAllOperations()
-                _highlightStateQueue = nil
+                if var strongSelf = weakSelf {
+                    strongSelf._highlightStateQueue?.cancelAllOperations()
+                    strongSelf._highlightStateQueue = nil
+                }
                 
                 dispatch_async(dispatch_get_main_queue()) {
                     weakSelf?.setHighlightedAppearance()
@@ -410,8 +432,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
                     }
                     weakSelf?.setNormalAppearance()
                 }
-            }
-            blockOperation.addExecutionBlock(execution)
+            })
             _highlightStateQueue?.addOperations([blockOperation], waitUntilFinished: true)
                 
         } else if gc.state == UIGestureRecognizerState.Ended || gc.state == UIGestureRecognizerState.Cancelled {
@@ -514,15 +535,17 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         weak var weakSelf = self
         weak var weakBlockOperation = blockOperation
         
-        func execution() -> Void {
+        blockOperation.addExecutionBlock({() in
             if weakBlockOperation != nil {
                 if weakBlockOperation!.cancelled {
                     return
                 }
             }
             
-            _eventQueue?.cancelAllOperations()
-            _eventQueue = nil
+            if var strongSelf = weakSelf {
+                strongSelf._eventQueue?.cancelAllOperations()
+                strongSelf._eventQueue = nil
+            }
             
             var expandWidth:() -> Void = {() in
                 weakSelf?.setExpandedWidthAppearanceAnimated(true, completion: {() in
@@ -540,8 +563,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
                 }
             }
             
-        }
-        blockOperation.addExecutionBlock(execution)
+        })
         _eventQueue?.addOperations([blockOperation], waitUntilFinished: true)
         
     }
@@ -562,16 +584,17 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         weak var weakSelf = self
         weak var weakBlockOperation = blockOperation
         
-        func execution() -> Void {
+        blockOperation.addExecutionBlock({() in
             if weakBlockOperation != nil {
                 if weakBlockOperation!.cancelled {
                     return
                 }
                 
             }
-            
-            _eventQueue?.cancelAllOperations()
-            _eventQueue = nil
+            if var strongSelf = weakSelf {
+                strongSelf._eventQueue?.cancelAllOperations()
+                strongSelf._eventQueue = nil
+            }
             
             var contractWidth:() -> Void = {() in
                 weakSelf?.setContractedWidthAppearanceAnimated(true) {() in
@@ -588,9 +611,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
                     contractWidth()
                 }
             }
-        }
-        
-        blockOperation.addExecutionBlock(execution)
+        })
         _eventQueue?.addOperations([blockOperation], waitUntilFinished: true)
     }
     
