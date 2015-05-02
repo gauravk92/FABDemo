@@ -16,12 +16,15 @@ internal class SingleEventQueue:NSOperationQueue {
     }
 }
 
-internal class ContentLayer: CALayer {
+// MARK: - Contents Layer
+private class ContentLayer: CALayer {
+    // MARK: - Contents Appearance Parameters
     let _buttonSpacing = CGFloat(20)
     let _firstButtonInset = CGFloat(30)
     let _contentFont = UIFont.systemFontOfSize(18.0)
     let _contentColor = UIColor.whiteColor()
     
+    // MARK: Contents
     var _web:NSAttributedString?
     var _image:NSAttributedString?
     var _video:NSAttributedString?
@@ -80,12 +83,15 @@ internal class ContentLayer: CALayer {
     }
 }
 
-internal class ContentScrollContainerLayer: CALayer {
+// MARK: - Contents Scroll Container Layer
+private class ContentScrollContainerLayer: CALayer {
+    // MARK: Container Mask Layers
     let _scrollContainerLayer = CALayer()
     let _maskContainerLayer = CALayer()
     let _maskFillLayer = CALayer()
     let _maskGradientLayer = CALayer()
     
+    // MARK: Contents Passed Parameters
     var _gradientWidth:CGFloat?
     var _contentSize:CGSize?
     var _fabSize:CGFloat?
@@ -110,7 +116,7 @@ internal class ContentScrollContainerLayer: CALayer {
         
         _maskContainerLayer.addSublayer(_maskFillLayer)
         _maskContainerLayer.addSublayer(_maskGradientLayer)
-        
+        //_scrollContainerLayer.addSublayer(_maskContainerLayer)
         _scrollContainerLayer.mask = _maskContainerLayer
         
         _gradientWidth = gradientWidth
@@ -139,61 +145,81 @@ internal class ContentScrollContainerLayer: CALayer {
         var fabSize = _fabSize!
         var fabMargin = _fabMargin!
         _maskContainerLayer.frame.origin.x = self.bounds.origin.x + gradientWidth + (fabMargin*2) + fabSize + 160
-        _maskFillLayer.frame.size.width = self.bounds.size.width - fabSize - (fabMargin*2)
+        _maskFillLayer.frame.size.width = self.bounds.size.width
+        //NSLog("%@", NSStringFromCGRect(_maskFillLayer.frame))
+        
+        
     }
 }
 
+// MARK: - FABView
 
-enum FABViewState {
+private enum FABViewState {
     case Normal
     case Expanded
     case Expanding
     case Contracting
+    case Panning
 }
+
+private let FABViewPOPAnimationExpandingKey = "FABViewPOPAnimationExpandingKey"
+private let FABViewPOPAnimationContractingKey = "FABViewPOPAnimationContractingKey"
 
 @IBDesignable
 class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
-    let _fabSize:CGFloat = 75
-    let _fabMargin:CGFloat = 28
-    let _fabIconToContentMargin:CGFloat = 10
-    let _fabAntialias = true
-    let _normalStateColor = UIColor(red:0.205, green:0.487, blue:1, alpha:1)
-    let _activeStateColor = UIColor(red:0.327, green:0.624, blue:1, alpha:1)
+    // MARK: - FABView Appearance Parameters
+    private let _fabSize:CGFloat = 75
+    private let _fabMargin:CGFloat = 28
+    private let _fabIconToContentMargin:CGFloat = 10
+    private let _fabAntialias = true
+    private let _normalStateColor = UIColor(red:0.205, green:0.487, blue:1, alpha:1)
+    private let _activeStateColor = UIColor(red:0.327, green:0.624, blue:1, alpha:1)
     
-    let _mainContainerLayer = ContentScrollContainerLayer()
-    let _contentLayer = ContentLayer.init()
-    let _contentScrollLayer = CAScrollLayer()
-    let _contentLeftGradientMaskLayer = CALayer()
-    let _iconLayer = CALayer()
+    // MARK: Appearance Layers
+    private let _mainContainerLayer = ContentScrollContainerLayer()
+    private let _contentLayer = ContentLayer.init()
+    private let _contentScrollLayer = CAScrollLayer()
+    private let _contentLeftGradientMaskLayer = CALayer()
+    private let _iconLayer = CALayer()
     
-    let _scrollContainerLayer = CALayer()
-    let _scrollContainerRightGradientMaskLayer = CALayer()
-    let _scrollContainerMaskLayer = CALayer()
-    let _scrollContainerFillMaskLayer = CALayer()
-    var _scrollMaskGradientWidth:CGFloat?
+    // MARK: Scroll Container Mask Layers
+    private let _scrollContainerLayer = CALayer()
+    private let _scrollContainerRightGradientMaskLayer = CALayer()
+    private let _scrollContainerMaskLayer = CALayer()
+    private let _scrollContainerFillMaskLayer = CALayer()
+    private var _scrollMaskGradientWidth:CGFloat?
 
-    let _longTouchExpandRecognizer = UILongPressGestureRecognizer()
-    let _touchHighlightRecognizer = UILongPressGestureRecognizer()
-    let _longTouchContractRecognizer = UILongPressGestureRecognizer()
-    let _doubleTapIconContractRecognizer = UILongPressGestureRecognizer()
-    let _panGestureRecognizer = UIPanGestureRecognizer()
+    // MARK: Gesture Recognizers
+    private let _longTouchExpandRecognizer = UILongPressGestureRecognizer()
+    private let _touchHighlightRecognizer = UILongPressGestureRecognizer()
+    private let _longTouchContractRecognizer = UILongPressGestureRecognizer()
+    private let _doubleTapIconContractRecognizer = UILongPressGestureRecognizer()
+    private let _panGestureRecognizer = UIPanGestureRecognizer()
     
-    var _eventQueue:SingleEventQueue? = SingleEventQueue()
-    var _highlightStateQueue:SingleEventQueue? = SingleEventQueue()
-    var _lastHighlightOperation:NSOperation?
+    // MARK: Operation Queues
+    private var _eventQueue:SingleEventQueue? = SingleEventQueue()
+    private var _highlightStateQueue:SingleEventQueue? = SingleEventQueue()
+    private var _lastHighlightOperation:NSOperation?
     
-    var _state:FABViewState = FABViewState.Normal
+    private var _state:FABViewState = FABViewState.Normal
     
-    var _rightMarginConstraint:NSLayoutConstraint?
-    var _bottomMarginConstraint:NSLayoutConstraint?
-    var _widthConstraint:NSLayoutConstraint?
+    // MARK: AutoLayout Constraints
+    private var _rightMarginConstraint:NSLayoutConstraint?
+    private var _bottomMarginConstraint:NSLayoutConstraint?
+    private var _widthConstraint:NSLayoutConstraint?
     
-    var _normalImage:UIImage?
-    var _highlightImage:UIImage?
+    // MARK: Generated Appearance Images
+    private var _normalImage:UIImage?
+    private var _highlightImage:UIImage?
     
-    var _expandAnimationCompletionBlock:NSBlockOperation?
-    var _contractAnimationCompletionBlock:NSBlockOperation?
+    // MARK: Animation Completion Blocks
+    private var _expandAnimationCompletionBlock:NSBlockOperation?
+    private var _contractAnimationCompletionBlock:NSBlockOperation?
     
+    private var _panAnimationBeginTime:CFTimeInterval?
+    private var _panAnimationEndTime:CFTimeInterval?
+    
+    // MARK: FABView Initializer Methods
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -204,11 +230,8 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         setup()
     }
     
-    override func alignmentRectInsets() -> UIEdgeInsets {
-        return UIEdgeInsetsZero
-    }
-    
-    func setup() {
+    // MARK: - FABView Setup Methods
+    private func setup() {
         self.preservesSuperviewLayoutMargins = false
         setTranslatesAutoresizingMaskIntoConstraints(false)
         self.layoutMargins = UIEdgeInsetsZero
@@ -276,7 +299,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         
     }
     
-    func setupNormalAndHighlightBackgroundImages() {
+    private func setupNormalAndHighlightBackgroundImages() {
         
         let size = CGSizeMake(_fabSize, _fabSize)
         let bound = CGSizeMake(_fabSize + (_fabMargin*2), _fabSize + (_fabMargin*2))
@@ -313,7 +336,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         
     }
     
-    func createIconImage() -> UIImage? {
+    private func createIconImage() -> UIImage? {
         let loadedImage = UIImage(named:"ic_add_black_ios_24dp")
         if loadedImage == nil {
             return nil
@@ -333,7 +356,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         return maskedImage
     }
     
-    func createLeftGradientMaskImage(maskSize: CGSize) -> (UIImage, CGFloat) {
+    private func createLeftGradientMaskImage(maskSize: CGSize) -> (UIImage, CGFloat) {
         
         let gradientWidth:CGFloat = 0.2
         UIGraphicsBeginImageContextWithOptions(maskSize, false, 0)
@@ -351,6 +374,12 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         return (mask, maskGradientWidth)
     }
     
+    // MARK: - UIView Override Methods
+    
+    override func alignmentRectInsets() -> UIEdgeInsets {
+        return UIEdgeInsetsZero
+    }
+    
     override func intrinsicContentSize() -> CGSize {
         if self._state == FABViewState.Expanded {
             return CGSizeMake(375, 131)
@@ -365,7 +394,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        if (self._state == FABViewState.Expanding || self._state == FABViewState.Contracting) {
+        if (self._state == FABViewState.Expanding || self._state == FABViewState.Contracting || self._state == FABViewState.Panning) {
             return
         }
         
@@ -382,9 +411,59 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         CATransaction.commit()
     }
     
-    override func updateConstraints() {
-        super.updateConstraints()
+    // MARK: AutoLayout Constraint Management
+    
+    override func didMoveToSuperview() {
+        if (self.superview != nil) {
+            let superview = self.superview!
+            let size = self.intrinsicContentSize()
+            
+            let width = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: nil, attribute: NSLayoutAttribute.NotAnAttribute, multiplier: 1, constant: size.width)
+            _widthConstraint = width
+            
+            let rightTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.Trailing, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Trailing, multiplier: 1, constant:0)
+            _rightMarginConstraint = rightTrailMargin
+            
+            let bottomTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.Baseline, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.BottomMargin, multiplier: 1, constant:0)
+            _bottomMarginConstraint = bottomTrailMargin
+            
+            
+            superview.addConstraints([rightTrailMargin, bottomTrailMargin, width])
+        }
     }
+    
+    override func willMoveToSuperview(newSuperview: UIView?) {
+        if self.superview != nil {
+            let superview = self.superview!
+            if _rightMarginConstraint != nil {
+                superview.removeConstraint(_rightMarginConstraint!)
+            }
+            if _bottomMarginConstraint != nil {
+                superview.removeConstraint(_bottomMarginConstraint!)
+            }
+            if _widthConstraint != nil {
+                superview.removeConstraint(_widthConstraint!)
+            }
+        }
+        
+    }
+    
+    // MARK: Touch Recognition
+    
+    override func pointInside(point: CGPoint, withEvent event: UIEvent?) -> Bool {
+        let inside = super.pointInside(point, withEvent: event)
+        let convertedPoint = self.layer.convertPoint(point, toLayer: self._mainContainerLayer)
+        let hit = self._mainContainerLayer.containsPoint(convertedPoint)
+        
+        //NSLog("%@ hit", NSNumber(bool: hit))
+        //NSLog("%@ hitP", NSStringFromCGPoint(point))
+        //NSLog("%@", NSNumber(bool: inside))
+        //NSLog("%@ %@", self._mainContainerLayer, NSStringFromCGRect(self._mainContainerLayer.frame))
+        
+        return hit
+    }
+    
+    // MARK: - State Methods
     
     func setNormalAppearance() {
         CATransaction.begin()
@@ -402,6 +481,97 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         _mainContainerLayer.contents = self._highlightImage!.CGImage
         CATransaction.commit()
     }
+    
+    func updateGestureRecognizersState() {
+        switch self._state {
+        case FABViewState.Normal:
+            self._touchHighlightRecognizer.enabled = true
+            self._longTouchExpandRecognizer.enabled = true
+            self._longTouchContractRecognizer.enabled = false
+            self._doubleTapIconContractRecognizer.enabled = false
+            break;
+        case FABViewState.Expanded:
+            self._touchHighlightRecognizer.enabled = false
+            self._longTouchExpandRecognizer.enabled = false
+            self._longTouchContractRecognizer.enabled = true
+            self._doubleTapIconContractRecognizer.enabled = true
+            break;
+        default:
+            break;
+        }
+    }
+    
+    // MARK: - Animation Methods
+    
+    func setExpandedWidthAppearanceAnimated(animated: Bool, completion: (() -> Void)?) {
+        self._state = FABViewState.Expanded
+        self.updateGestureRecognizersState()
+        
+        let size = self.intrinsicContentSize()
+        let toRect = CGRectIntegral(CGRectMake(-(size.width-self._iconLayer.frame.size.width), 0, size.width, size.height))
+        
+        self.invalidateIntrinsicContentSize()
+        
+        if (animated) {
+            
+            self._state = FABViewState.Expanding
+            
+            let pop = POPSpringAnimation(propertyNamed: kPOPLayerBounds)
+            pop.toValue = NSValue(CGRect: toRect)
+            pop.removedOnCompletion = false
+            //pop.springBounciness = 0.01
+            //pop.springSpeed = 0.1
+            //pop.springBounciness = 25.1
+            //pop.springSpeed = 25.4
+            //            pop.dynamicsTension = 150
+            //            pop.dynamicsFriction = 10
+            //            pop.dynamicsMass = 1
+            pop.delegate = self
+            if completion != nil {
+                _expandAnimationCompletionBlock = NSBlockOperation(block: completion!)
+            }
+            
+            self._mainContainerLayer.pop_addAnimation(pop, forKey: FABViewPOPAnimationExpandingKey)
+        } else {
+            self._mainContainerLayer.bounds = toRect
+        }
+    }
+    
+    func setContractedWidthAppearanceAnimated(animated: Bool, completion: (() -> Void)?) {
+        self._state = FABViewState.Normal
+        self.updateGestureRecognizersState()
+        
+        let size = self.intrinsicContentSize()
+        let toRect = CGRectIntegral(CGRectMake(abs(-(size.width-self._iconLayer.frame.size.width)), 0, size.width, size.height))
+        
+        self.invalidateIntrinsicContentSize()
+        
+        if (animated) {
+            
+            self._state = FABViewState.Contracting
+            
+            let pop = POPSpringAnimation(propertyNamed: kPOPLayerBounds)
+            pop.toValue = NSValue(CGRect: toRect)
+            pop.removedOnCompletion = false
+            //pop.springBounciness = 0.1
+            //pop.springSpeed = 0.1
+            //pop.springBounciness = 25.1
+            //pop.springSpeed = 25.4
+            //            pop.dynamicsTension = 150
+            //            pop.dynamicsFriction = 10
+            //            pop.dynamicsMass = 1
+            pop.delegate = self
+            if completion != nil {
+                _contractAnimationCompletionBlock = NSBlockOperation(block: completion!)
+            }
+            
+            self._mainContainerLayer.pop_addAnimation(pop, forKey: FABViewPOPAnimationContractingKey)
+        } else {
+            self._mainContainerLayer.bounds = toRect
+        }
+    }
+    
+    // MARK: - Gesture Recognizer methods
     
     func touchHighlightAction(gc: UILongPressGestureRecognizer) {
         
@@ -441,90 +611,79 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
             _lastHighlightOperation?.cancel()
             _highlightStateQueue = SingleEventQueue()
         }
-        
     }
     
-    func updateGestureRecognizersState() {
-        switch self._state {
-        case FABViewState.Normal:
-            self._touchHighlightRecognizer.enabled = true
-            self._longTouchExpandRecognizer.enabled = true
-            self._longTouchContractRecognizer.enabled = false
-            self._doubleTapIconContractRecognizer.enabled = false
+    func panGestureAction(gc: UIPanGestureRecognizer) {
+        switch gc.state {
+        case UIGestureRecognizerState.Began:
+            
+            self._state = FABViewState.Expanded
+//            self.updateGestureRecognizersState()
+//            
+//            let size = self.intrinsicContentSize()
+//            let toRect = CGRectIntegral(CGRectMake(-(size.width-self._iconLayer.frame.size.width), 0, size.width, size.height))
+//            
+//            self.invalidateIntrinsicContentSize()
+
+            //self._state = FABViewState.Panning
+
+//            let pop = POPBasicAnimation(propertyNamed: kPOPLayerBounds)
+//            pop.toValue = NSValue(CGRect: toRect)
+//            pop.duration = 1.0
+//            pop.removedOnCompletion = false
+//            po
+//            let anim = CABasicAnimation(keyPath: "bounds")
+//            anim.toValue = NSValue(CGRect: toRect)
+//            anim.duration = 1.0
+//            anim.removedOnCompletion = false
+//            anim.delegate = self
+//            self._mainContainerLayer.addAnimation(anim, forKey: "pan")
+//
+            //self._mainContainerLayer.speed = 0.0
+            //let beginTime:CFTimeInterval = CACurrentMediaTime()
+            //self._panAnimationBeginTime = beginTime
+            //self._panAnimationEndTime = beginTime + anim.duration
+            
+            NSLog("%@", NSStringFromCGRect(self.layer.bounds))
+            NSLog("%@", NSStringFromCGRect(self._mainContainerLayer.bounds))
+            
             break;
-        case FABViewState.Expanded:
-            self._touchHighlightRecognizer.enabled = false
-            self._longTouchExpandRecognizer.enabled = false
-            self._longTouchContractRecognizer.enabled = true
-            self._doubleTapIconContractRecognizer.enabled = true
+        case UIGestureRecognizerState.Changed:
+            
+            let point = gc.locationInView(self)
+        
+            self._mainContainerLayer.bounds.origin.x = -(point.x - self._iconLayer.frame.size.width)
+            self._mainContainerLayer.bounds.size.width = point.x
+            //self._mainContainerLayer.layoutSublayers()
+            //self._mainContainerLayer.bounds = CGRectIntegral(CGRectMake(-(point.x-self._iconLayer.frame.size.width), 0, point.x, 131))
+
+            
+//
+//            if self._panAnimationBeginTime != nil {
+//                let beginTime = self._panAnimationBeginTime!
+//                let pointInTime = 1.0/(point.x / 280)
+//                self._mainContainerLayer.timeOffset = CFTimeInterval(pointInTime) + beginTime
+//                
+//            }
+//            NSLog("%@", NSStringFromCGPoint(point))
+            break;
+        case UIGestureRecognizerState.Ended:
+            
+            break;
+        case UIGestureRecognizerState.Cancelled:
+            
+            break;
+        case UIGestureRecognizerState.Failed:
+            
+            break;
+        case UIGestureRecognizerState.Possible:
+            
             break;
         default:
             break;
         }
     }
     
-    func setContractedWidthAppearanceAnimated(animated: Bool, completion: (() -> Void)?) {
-        self._state = FABViewState.Normal
-        self.updateGestureRecognizersState()
-        
-        let size = self.intrinsicContentSize()
-        let toRect = CGRectIntegral(CGRectMake(abs(-(size.width-self._iconLayer.frame.size.width)), 0, size.width, size.height))
-        
-        self.invalidateIntrinsicContentSize()
-        
-        if (animated) {
-            
-            self._state = FABViewState.Contracting
-
-            let pop = POPSpringAnimation(propertyNamed: kPOPLayerBounds)
-            pop.toValue = NSValue(CGRect: toRect)
-            pop.removedOnCompletion = false
-            //pop.springBounciness = 25.1
-            //pop.springSpeed = 25.4
-//            pop.dynamicsTension = 150
-//            pop.dynamicsFriction = 10
-//            pop.dynamicsMass = 1
-            pop.delegate = self
-            if completion != nil {
-                _contractAnimationCompletionBlock = NSBlockOperation(block: completion!)
-            }
-            
-            self._mainContainerLayer.pop_addAnimation(pop, forKey: "contract")
-        } else {
-            self._mainContainerLayer.bounds = toRect
-        }
-    }
-    func setExpandedWidthAppearanceAnimated(animated: Bool, completion: (() -> Void)?) {
-        self._state = FABViewState.Expanded
-        self.updateGestureRecognizersState()
-        
-        let size = self.intrinsicContentSize()
-        let toRect = CGRectIntegral(CGRectMake(-(size.width-self._iconLayer.frame.size.width), 0, size.width, size.height))
-
-        self.invalidateIntrinsicContentSize()
-        
-        if (animated) {
-            
-            self._state = FABViewState.Expanding
-            
-            let pop = POPSpringAnimation(propertyNamed: kPOPLayerBounds)
-            pop.toValue = NSValue(CGRect: toRect)
-            pop.removedOnCompletion = false
-            //pop.springBounciness = 25.1
-            //pop.springSpeed = 25.4
-//            pop.dynamicsTension = 150
-//            pop.dynamicsFriction = 10
-//            pop.dynamicsMass = 1
-            pop.delegate = self
-            if completion != nil {
-                _expandAnimationCompletionBlock = NSBlockOperation(block: completion!)
-            }
-
-            self._mainContainerLayer.pop_addAnimation(pop, forKey: "widen")
-        } else {
-            self._mainContainerLayer.bounds = toRect
-        }
-    }
     func expandRecognizerAction(gc: UILongPressGestureRecognizer) {
 
         if gc.state != UIGestureRecognizerState.Began {
@@ -615,40 +774,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         _eventQueue?.addOperations([blockOperation], waitUntilFinished: true)
     }
     
-    override func didMoveToSuperview() {
-        if (self.superview != nil) {
-            let superview = self.superview!
-            let size = self.intrinsicContentSize()
-            
-            let width = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: nil, attribute: NSLayoutAttribute.NotAnAttribute, multiplier: 1, constant: size.width)
-            _widthConstraint = width
-            
-            let rightTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.Trailing, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Trailing, multiplier: 1, constant:0)
-            _rightMarginConstraint = rightTrailMargin
-            
-            let bottomTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.Baseline, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.BottomMargin, multiplier: 1, constant:0)
-            _bottomMarginConstraint = bottomTrailMargin
-            
-            
-            superview.addConstraints([rightTrailMargin, bottomTrailMargin, width])
-        }
-    }
-    
-    override func willMoveToSuperview(newSuperview: UIView?) {
-        if self.superview != nil {
-            let superview = self.superview!
-            if _rightMarginConstraint != nil {
-                superview.removeConstraint(_rightMarginConstraint!)
-            }
-            if _bottomMarginConstraint != nil {
-                superview.removeConstraint(_bottomMarginConstraint!)
-            }
-            if _widthConstraint != nil {
-                superview.removeConstraint(_widthConstraint!)
-            }
-        }
-        
-    }
+    // MARK: - Gesture Recognizer Delegate Methods
     
     func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if (gestureRecognizer == _touchHighlightRecognizer && otherGestureRecognizer == _longTouchExpandRecognizer) || (gestureRecognizer == _longTouchExpandRecognizer && otherGestureRecognizer == _touchHighlightRecognizer) {
@@ -671,20 +797,15 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
 //        return hit
 //    }
     
-    override func pointInside(point: CGPoint, withEvent event: UIEvent?) -> Bool {
-        let inside = super.pointInside(point, withEvent: event)
-        let convertedPoint = self.layer.convertPoint(point, toLayer: self._mainContainerLayer)
-        let hit = self._mainContainerLayer.containsPoint(convertedPoint)
-    
-        //NSLog("%@ hit", NSNumber(bool: hit))
-        //NSLog("%@ hitP", NSStringFromCGPoint(point))
-        //NSLog("%@", NSNumber(bool: inside))
-        //NSLog("%@ %@", self._mainContainerLayer, NSStringFromCGRect(self._mainContainerLayer.frame))
-        
-        return hit
+    // MARK: - CAAnimation Delegate Methods
+    override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
+        NSLog("%@", anim)
     }
+    
+    // MARK: - POP Delegate Methods
+    
     func pop_animationDidStop(anim: POPAnimation!, finished: Bool) {
-        if anim == self._mainContainerLayer.pop_animationForKey("widen") as? POPAnimation {
+        if anim == self._mainContainerLayer.pop_animationForKey(FABViewPOPAnimationExpandingKey) as? POPAnimation {
             if finished {
                 weak var weakSelf = self
                 if self._expandAnimationCompletionBlock != nil {
@@ -702,7 +823,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
                 }
             }
         }
-        if anim == self._mainContainerLayer.pop_animationForKey("contract") as? POPAnimation {
+        if anim == self._mainContainerLayer.pop_animationForKey(FABViewPOPAnimationContractingKey) as? POPAnimation {
             if finished {
                 weak var weakSelf = self
                 if self._contractAnimationCompletionBlock != nil {
