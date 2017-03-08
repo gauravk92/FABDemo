@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		879ABC76F67FF5675D105899 /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B1AE4DF9529729354FF29A0 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		912BE18D1B114AD100455BDA /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912BE18C1B114AD100455BDA /* Layout.swift */; };
+		912BE18F1B1163DB00455BDA /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912BE18C1B114AD100455BDA /* Layout.swift */; };
+		912BE1931B11684D00455BDA /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91480A821AEF1125006A6EC1 /* ViewController.swift */; };
+		913228361AF61336004E2EE7 /* CALayer+VisibleCorners.swift in Sources */ = {isa = PBXBuildFile; fileRef = 913228351AF61336004E2EE7 /* CALayer+VisibleCorners.swift */; };
+		913228401AFAEE2E004E2EE7 /* ic_add_black_ios_24dp.png in Resources */ = {isa = PBXBuildFile; fileRef = 9132283D1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp.png */; };
+		913228411AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9132283E1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@2x.png */; };
+		913228421AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9132283F1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@3x.png */; };
 		91480A811AEF1125006A6EC1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91480A801AEF1125006A6EC1 /* AppDelegate.swift */; };
 		91480A831AEF1125006A6EC1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91480A821AEF1125006A6EC1 /* ViewController.swift */; };
 		91480A861AEF1125006A6EC1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 91480A841AEF1125006A6EC1 /* Main.storyboard */; };
@@ -14,10 +22,8 @@
 		91480A8B1AEF1125006A6EC1 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 91480A891AEF1125006A6EC1 /* LaunchScreen.xib */; };
 		91480A971AEF1126006A6EC1 /* FABDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91480A961AEF1126006A6EC1 /* FABDemoTests.swift */; };
 		91480AA11AEF1135006A6EC1 /* FABView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91480AA01AEF1135006A6EC1 /* FABView.swift */; };
-		91DEF0071AF07C550090A618 /* ic_add_black_ios_24dp.png in Resources */ = {isa = PBXBuildFile; fileRef = 91DEF0041AF07C550090A618 /* ic_add_black_ios_24dp.png */; };
-		91DEF0081AF07C550090A618 /* ic_add_black_ios_24dp@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 91DEF0051AF07C550090A618 /* ic_add_black_ios_24dp@2x.png */; };
-		91DEF0091AF07C550090A618 /* ic_add_black_ios_24dp@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 91DEF0061AF07C550090A618 /* ic_add_black_ios_24dp@3x.png */; };
-		F4AE5961FB9F27D9908AA875 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9CD2E714B366C22A30D6D63F /* libPods.a */; };
+		91DF20E01B04FF4200F9DF7A /* Accel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91DF20DF1B04FF4200F9DF7A /* Accel.swift */; };
+		91DF20E11B0505D200F9DF7A /* Accel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91DF20DF1B04FF4200F9DF7A /* Accel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,8 +37,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0B1AE4DF9529729354FF29A0 /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D40895FBA128778E27EB71D /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		8A712B83567009C82B9E6440 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		912BE18C1B114AD100455BDA /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
+		913228351AF61336004E2EE7 /* CALayer+VisibleCorners.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CALayer+VisibleCorners.swift"; sourceTree = "<group>"; };
+		913228371AF6136D004E2EE7 /* CALayerVisibleCorners.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CALayerVisibleCorners.h; sourceTree = "<group>"; };
+		913228381AF6136D004E2EE7 /* CALayerVisibleCorners.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CALayerVisibleCorners.m; sourceTree = "<group>"; };
+		9132283D1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ic_add_black_ios_24dp.png; path = images/ic_add_black_ios_24dp.png; sourceTree = SOURCE_ROOT; };
+		9132283E1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ic_add_black_ios_24dp@2x.png"; path = "images/ic_add_black_ios_24dp@2x.png"; sourceTree = SOURCE_ROOT; };
+		9132283F1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ic_add_black_ios_24dp@3x.png"; path = "images/ic_add_black_ios_24dp@3x.png"; sourceTree = SOURCE_ROOT; };
 		91480A7B1AEF1125006A6EC1 /* FABDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FABDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		91480A7F1AEF1125006A6EC1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		91480A801AEF1125006A6EC1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -45,10 +59,7 @@
 		91480A961AEF1126006A6EC1 /* FABDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FABDemoTests.swift; sourceTree = "<group>"; };
 		91480AA01AEF1135006A6EC1 /* FABView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FABView.swift; sourceTree = "<group>"; };
 		916BFF511AEF5FEA00F495C8 /* FABDemo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FABDemo-Bridging-Header.h"; sourceTree = "<group>"; };
-		91DEF0041AF07C550090A618 /* ic_add_black_ios_24dp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ic_add_black_ios_24dp.png; path = ../../../Downloads/ic_add/ic_add_black_ios_24dp.png; sourceTree = "<group>"; };
-		91DEF0051AF07C550090A618 /* ic_add_black_ios_24dp@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ic_add_black_ios_24dp@2x.png"; path = "../../../Downloads/ic_add/ic_add_black_ios_24dp@2x.png"; sourceTree = "<group>"; };
-		91DEF0061AF07C550090A618 /* ic_add_black_ios_24dp@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ic_add_black_ios_24dp@3x.png"; path = "../../../Downloads/ic_add/ic_add_black_ios_24dp@3x.png"; sourceTree = "<group>"; };
-		9CD2E714B366C22A30D6D63F /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		91DF20DF1B04FF4200F9DF7A /* Accel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Accel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,7 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F4AE5961FB9F27D9908AA875 /* libPods.a in Frameworks */,
+				879ABC76F67FF5675D105899 /* Pods.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,17 +104,22 @@
 		91480A7D1AEF1125006A6EC1 /* FABDemo */ = {
 			isa = PBXGroup;
 			children = (
-				91DEF0041AF07C550090A618 /* ic_add_black_ios_24dp.png */,
-				91DEF0051AF07C550090A618 /* ic_add_black_ios_24dp@2x.png */,
-				91DEF0061AF07C550090A618 /* ic_add_black_ios_24dp@3x.png */,
+				913228351AF61336004E2EE7 /* CALayer+VisibleCorners.swift */,
+				9132283D1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp.png */,
+				9132283E1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@2x.png */,
+				9132283F1AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@3x.png */,
 				91480A801AEF1125006A6EC1 /* AppDelegate.swift */,
 				91480A821AEF1125006A6EC1 /* ViewController.swift */,
+				912BE18C1B114AD100455BDA /* Layout.swift */,
 				91480AA01AEF1135006A6EC1 /* FABView.swift */,
 				916BFF511AEF5FEA00F495C8 /* FABDemo-Bridging-Header.h */,
 				91480A841AEF1125006A6EC1 /* Main.storyboard */,
 				91480A871AEF1125006A6EC1 /* Images.xcassets */,
 				91480A891AEF1125006A6EC1 /* LaunchScreen.xib */,
 				91480A7E1AEF1125006A6EC1 /* Supporting Files */,
+				913228371AF6136D004E2EE7 /* CALayerVisibleCorners.h */,
+				913228381AF6136D004E2EE7 /* CALayerVisibleCorners.m */,
+				91DF20DF1B04FF4200F9DF7A /* Accel.swift */,
 			);
 			path = FABDemo;
 			sourceTree = "<group>";
@@ -136,7 +152,7 @@
 		B109F11A8424E142D42829DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				9CD2E714B366C22A30D6D63F /* libPods.a */,
+				0B1AE4DF9529729354FF29A0 /* Pods.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -162,6 +178,7 @@
 				91480A781AEF1125006A6EC1 /* Frameworks */,
 				91480A791AEF1125006A6EC1 /* Resources */,
 				D1DC2CB2A2AA4FD464D63A42 /* Copy Pods Resources */,
+				94937FAB8C20C7C92B26392A /* Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -201,9 +218,12 @@
 				TargetAttributes = {
 					91480A7A1AEF1125006A6EC1 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = 7EVCZNNHS8;
+						LastSwiftMigration = 0820;
 					};
 					91480A8F1AEF1126006A6EC1 = {
 						CreatedOnToolsVersion = 6.3.1;
+						LastSwiftMigration = 0820;
 						TestTargetID = 91480A7A1AEF1125006A6EC1;
 					};
 				};
@@ -234,10 +254,10 @@
 			files = (
 				91480A861AEF1125006A6EC1 /* Main.storyboard in Resources */,
 				91480A8B1AEF1125006A6EC1 /* LaunchScreen.xib in Resources */,
-				91DEF0081AF07C550090A618 /* ic_add_black_ios_24dp@2x.png in Resources */,
-				91DEF0091AF07C550090A618 /* ic_add_black_ios_24dp@3x.png in Resources */,
+				913228411AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@2x.png in Resources */,
+				913228421AFAEE2E004E2EE7 /* ic_add_black_ios_24dp@3x.png in Resources */,
 				91480A881AEF1125006A6EC1 /* Images.xcassets in Resources */,
-				91DEF0071AF07C550090A618 /* ic_add_black_ios_24dp.png in Resources */,
+				913228401AFAEE2E004E2EE7 /* ic_add_black_ios_24dp.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +271,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		94937FAB8C20C7C92B26392A /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		9FD2FFBB6753ED6DC9DC4484 /* Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -288,9 +323,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91DF20E01B04FF4200F9DF7A /* Accel.swift in Sources */,
 				91480AA11AEF1135006A6EC1 /* FABView.swift in Sources */,
+				913228361AF61336004E2EE7 /* CALayer+VisibleCorners.swift in Sources */,
 				91480A831AEF1125006A6EC1 /* ViewController.swift in Sources */,
 				91480A811AEF1125006A6EC1 /* AppDelegate.swift in Sources */,
+				912BE18D1B114AD100455BDA /* Layout.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,6 +336,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				912BE18F1B1163DB00455BDA /* Layout.swift in Sources */,
+				91DF20E11B0505D200F9DF7A /* Accel.swift in Sources */,
+				912BE1931B11684D00455BDA /* ViewController.swift in Sources */,
 				91480A971AEF1126006A6EC1 /* FABDemoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -420,11 +461,15 @@
 			baseConfigurationReference = 8A712B83567009C82B9E6440 /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = FABDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "FABDemo/FABDemo-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -433,11 +478,15 @@
 			baseConfigurationReference = 0D40895FBA128778E27EB71D /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = FABDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "FABDemo/FABDemo-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -456,6 +505,7 @@
 				INFOPLIST_FILE = FABDemoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FABDemo.app/FABDemo";
 			};
 			name = Debug;
@@ -471,6 +521,7 @@
 				INFOPLIST_FILE = FABDemoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FABDemo.app/FABDemo";
 			};
 			name = Release;

@@ -8,8 +8,9 @@
 
 import Foundation
 import UIKit
+import pop
 
-internal class SingleEventQueue:NSOperationQueue {
+internal class SingleEventQueue:OperationQueue {
     override init() {
         super.init()
         self.maxConcurrentOperationCount = 1
@@ -17,391 +18,422 @@ internal class SingleEventQueue:NSOperationQueue {
 }
 
 // MARK: - Contents Layer
-private class ContentLayer: CALayer {
+internal class ContentLayer: CALayer {
     // MARK: - Contents Appearance Parameters
-    let _buttonSpacing = CGFloat(20)
-    let _firstButtonInset = CGFloat(30)
-    let _contentFont = UIFont.systemFontOfSize(18.0)
-    let _contentColor = UIColor.whiteColor()
+    internal let _buttonSpacing:CGFloat = 20
+    internal let _firstButtonInset:CGFloat = 50
+    internal let _lastButtonInset:CGFloat = 50
+    internal let _contentFont = UIFont.systemFont(ofSize: 18.0)
+    internal let _contentColor = UIColor.white
     
     // MARK: Contents
-    var _web:NSAttributedString?
-    var _image:NSAttributedString?
-    var _video:NSAttributedString?
-    var _shopping:NSAttributedString?
-    var _map:NSAttributedString?
-    var _webRect:CGRect?
-    var _imageRect:CGRect?
-    var _videoRect:CGRect?
-    var _shoppingRect:CGRect?
-    var _mapRect:CGRect?
+    internal var _web:NSAttributedString?
+    internal var _image:NSAttributedString?
+    internal var _video:NSAttributedString?
+    internal var _shopping:NSAttributedString?
+    internal var _map:NSAttributedString?
+    internal var _webRect:CGRect?
+    internal var _imageRect:CGRect?
+    internal var _videoRect:CGRect?
+    internal var _shoppingRect:CGRect?
+    internal var _mapRect:CGRect?
     
     override init!() {
         super.init()
         
+        self.allowsGroupOpacity = false
+        
         let attrs = [NSFontAttributeName: _contentFont,
-            NSForegroundColorAttributeName: _contentColor]
+            NSForegroundColorAttributeName: _contentColor] as [String : Any]
         
         _web = NSAttributedString(string: "Web", attributes: attrs)
         let webSize = _web!.size()
-        _webRect = CGRectMake(_firstButtonInset, 0, webSize.width, webSize.height)
+        _webRect = CGRect(x: _firstButtonInset, y: 0, width: webSize.width, height: webSize.height)
         
         _image = NSAttributedString(string: "Images", attributes: attrs)
         let imageSize = _image!.size()
-        _imageRect = CGRectMake(CGRectGetMaxX(_webRect!) + _buttonSpacing, 0, imageSize.width, imageSize.height)
+        _imageRect = CGRect(x: _webRect!.maxX + _buttonSpacing, y: 0, width: imageSize.width, height: imageSize.height)
         
         
         _video = NSAttributedString(string: "Videos", attributes: attrs)
         let videoSize = _video!.size()
-        _videoRect = CGRectMake(CGRectGetMaxX(_imageRect!) + _buttonSpacing, 0, videoSize.width, videoSize.height)
+        _videoRect = CGRect(x: _imageRect!.maxX + _buttonSpacing, y: 0, width: videoSize.width, height: videoSize.height)
         
         
         _shopping = NSAttributedString(string: "Shopping", attributes: attrs)
         let shoppingSize = _shopping!.size()
-        _shoppingRect = CGRectMake(CGRectGetMaxX(_videoRect!) + _buttonSpacing, 0, shoppingSize.width, shoppingSize.height)
+        _shoppingRect = CGRect(x: _videoRect!.maxX + _buttonSpacing, y: 0, width: shoppingSize.width, height: shoppingSize.height)
         
-        
-        _map = NSAttributedString(string: "Maps", attributes: attrs)
+        let clearAttr = [NSFontAttributeName: _contentFont,
+            NSForegroundColorAttributeName: UIColor.clear] as [String : Any]
+        _map = NSAttributedString(string: "Maps", attributes: clearAttr)
         let mapSize = _map!.size()
-        _mapRect = CGRectMake(CGRectGetMaxX(_shoppingRect!) + _buttonSpacing, 0, mapSize.width, mapSize.height)
+        _mapRect = CGRect(x: _shoppingRect!.maxX + _buttonSpacing, y: 0, width: mapSize.width + _lastButtonInset, height: mapSize.height)
     }
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     override func preferredFrameSize() -> CGSize {
-        return CGSizeMake(floor(CGRectGetMaxX(_mapRect!)), floor(CGRectGetMaxY(_mapRect!)))
+        return CGSize(width: ceil(_mapRect!.maxX), height: ceil(_mapRect!.maxY))
     }
     
-    override func drawInContext(ctx: CGContext!) {
+    override func draw(in ctx: CGContext!) {
         UIGraphicsPushContext(ctx)
-        _web!.drawInRect(_webRect!)
-        _image!.drawInRect(_imageRect!)
-        _video!.drawInRect(_videoRect!)
-        _shopping!.drawInRect(_shoppingRect!)
-        _map!.drawInRect(_mapRect!)
+        _web!.draw(in: _webRect!)
+        _image!.draw(in: _imageRect!)
+        _video!.draw(in: _videoRect!)
+        _shopping!.draw(in: _shoppingRect!)
+        _map!.draw(in: _mapRect!)
         UIGraphicsPopContext()
     }
 }
 
 // MARK: - Contents Scroll Container Layer
-private class ContentScrollContainerLayer: CALayer {
+internal class ContentScrollContainerLayer: CAShapeLayer {
+    internal let _gradientWidth:CGFloat = 40
+    internal let _leftGradientInset:CGFloat = 88
+    internal let _rightGradientInset:CGFloat = 95
+    
     // MARK: Container Mask Layers
-    let _scrollContainerLayer = CALayer()
-    let _maskContainerLayer = CALayer()
-    let _maskFillLayer = CALayer()
-    let _maskGradientLayer = CALayer()
+    internal let _scrollContainerLayer = CAShapeLayer()
+    internal let _maskContainerLayer = CAShapeLayer()
+    internal let _maskFillLayer = CAShapeLayer()
+    internal let _maskLeftGradientLayer = CALayer()
+    internal let _maskRightGradientLayer = CALayer()
     
     // MARK: Contents Passed Parameters
-    var _gradientWidth:CGFloat?
-    var _contentSize:CGSize?
-    var _fabSize:CGFloat?
-    var _fabMargin:CGFloat?
-    func setup(contentSize: CGSize, gradientWidth: CGFloat, fabSize: CGFloat, fabMargin: CGFloat) {
+    internal var _gradientSize:CGSize?
+    internal var _contentSize:CGSize?
+    internal var _fabSize:CGFloat?
+    internal var _fabMargin:CGFloat?
+    internal var _expandedSize:CGFloat?
+    internal func setup(_ contentSize: CGSize, fabSize: CGFloat, fabMargin: CGFloat, expandedSize: CGFloat) {
         self.addSublayer(_scrollContainerLayer)
+    
+        self.allowsGroupOpacity = false
         
-        let gradientSize = CGSizeMake(gradientWidth, contentSize.height)
-        let mask = self.setupRightGradientMaskImage(gradientSize)
+        //let gradientWidth = contentSize.width * _gradientPointWidth
+        //self.anchorPoint = CGPointMake(1, 0.5)
+        self._maskContainerLayer.anchorPoint = CGPoint(x: 1, y: 0.5)
         
-        _maskGradientLayer.contents = mask.CGImage
-        _maskGradientLayer.backgroundColor = UIColor.clearColor().CGColor
-        _maskGradientLayer.opaque = false
-        _maskGradientLayer.contentsScale = UIScreen.mainScreen().scale
-        _maskGradientLayer.frame = CGRectMake(0, 0, gradientSize.width, gradientSize.height)
-        _maskContainerLayer.opaque = false
-        _maskContainerLayer.backgroundColor = UIColor.clearColor().CGColor
-        _maskContainerLayer.frame = CGRectMake(0, 0, gradientWidth, contentSize.height)
-        _maskFillLayer.backgroundColor = UIColor.whiteColor().CGColor
-        _maskFillLayer.opaque = true
-        _maskFillLayer.frame = CGRectMake(gradientWidth, 0, 0, contentSize.height)
+        let gradientSize = CGSize(width: _gradientWidth, height: ceil(contentSize.height))
+        let leftGradientMask = self.createLeftGradientMaskImage(gradientSize)
+        //let rightGradientMask = self.createRightGradientMaskImage(gradientSize)
         
+        _maskLeftGradientLayer.contents = leftGradientMask.cgImage
+        //_maskLeftGradientLayer.backgroundColor = UIColor.clearColor().CGColor
+        _maskLeftGradientLayer.allowsGroupOpacity = false
+        //_maskLeftGradientLayer.opaque = false
+        _maskLeftGradientLayer.contentsScale = UIScreen.main.scale
+        _maskLeftGradientLayer.frame = CGRect(x: 0, y: 0, width: gradientSize.width, height: gradientSize.height)
+        
+        let translateTransform = CGAffineTransform(translationX: 0, y: 0)
+        let invertTransform = CATransform3DMakeAffineTransform(translateTransform.scaledBy(x: -1, y: 1))
+        
+        _maskRightGradientLayer.contents = leftGradientMask.cgImage
+        _maskRightGradientLayer.isOpaque = false
+        _maskRightGradientLayer.contentsScale = UIScreen.main.scale
+        _maskRightGradientLayer.allowsGroupOpacity = false
+        _maskRightGradientLayer.anchorPoint = CGPoint(x: 0, y: 0.5)
+        _maskRightGradientLayer.transform = invertTransform
+        _maskRightGradientLayer.frame = CGRect(x: gradientSize.width + _rightGradientInset, y: 0, width: -gradientSize.width, height: gradientSize.height)
+        
+        _maskFillLayer.backgroundColor = UIColor.red.cgColor
+        _maskFillLayer.isOpaque = true
+        _maskFillLayer.frame = CGRect(x: 0, y: 0, width: 0, height: contentSize.height)
+        
+        //_maskContainerLayer.opaque = false
+        //_maskContainerLayer.backgroundColor = UIColor.clearColor().CGColor
+        _maskContainerLayer.frame = CGRect(x: expandedSize + fabSize + fabMargin*2, y: 0, width: -gradientSize.width, height: contentSize.height)
+
         _maskContainerLayer.addSublayer(_maskFillLayer)
-        _maskContainerLayer.addSublayer(_maskGradientLayer)
+        _maskContainerLayer.addSublayer(_maskLeftGradientLayer)
+        _maskContainerLayer.addSublayer(_maskRightGradientLayer)
+        
         //_scrollContainerLayer.addSublayer(_maskContainerLayer)
         _scrollContainerLayer.mask = _maskContainerLayer
         
-        _gradientWidth = gradientWidth
+        _gradientSize = gradientSize
         _contentSize = contentSize
         _fabMargin = fabMargin
         _fabSize = fabSize
+        _expandedSize = expandedSize
     }
-    func setupRightGradientMaskImage(gradientSize: CGSize) -> UIImage {
+    final internal func createLeftGradientMaskImage(_ gradientSize: CGSize) -> UIImage {
         UIGraphicsBeginImageContextWithOptions(gradientSize, false, 0)
-        var ctx = UIGraphicsGetCurrentContext()
+        let ctx = UIGraphicsGetCurrentContext()
         
         let locs: [CGFloat] = [0.0, 1.0]
-        let colors: [CGColorRef] = [UIColor.clearColor().CGColor, UIColor.whiteColor().CGColor]
-        let gradient = CGGradientCreateWithColors(CGColorSpaceCreateDeviceRGB(), colors, locs)
-        CGContextDrawLinearGradient(ctx, gradient, CGPointZero, CGPointMake(gradientSize.width, 0), CGGradientDrawingOptions(0))
+        let colors: [CGColor] = [UIColor.white.cgColor, UIColor.clear.cgColor]
+        let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: locs)
+        ctx?.drawLinearGradient(gradient!, start: CGPoint.zero, end: CGPoint(x: gradientSize.width, y: 0), options: CGGradientDrawingOptions(0))
         
-        let mask = UIGraphicsGetImageFromCurrentImageContext()
+        let mask = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         
         return mask
     }
-    override func layoutSublayers() {
+    final override func layoutSublayers() {
         super.layoutSublayers()
+        let gradientSize = _gradientSize!
+        let fabSize = _fabSize!
+        let fabMargin = _fabMargin!
+        let contentSize = _contentSize!
+        let expandedSize = _expandedSize!
         
-        let gradientWidth = _gradientWidth!
-        var fabSize = _fabSize!
-        var fabMargin = _fabMargin!
-        _maskContainerLayer.frame.origin.x = self.bounds.origin.x + gradientWidth + (fabMargin*2) + fabSize + 160
-        _maskFillLayer.frame.size.width = self.bounds.size.width
-        //NSLog("%@", NSStringFromCGRect(_maskFillLayer.frame))
+        var maskContainerWidth = self.bounds.width
+        if (maskContainerWidth > expandedSize) {
+            maskContainerWidth = expandedSize
+        }
+        _maskContainerLayer.bounds.size.width = maskContainerWidth
         
-        
+        _maskFillLayer.frame.origin.x = _maskRightGradientLayer.frame.maxX
+        let fillCalcWidth = self.bounds.size.width - fabSize/2 - fabMargin - _gradientWidth - _leftGradientInset
+        let fillWidth = (fillCalcWidth < 0) ? 0 : fillCalcWidth
+        _maskFillLayer.frame.size.width = fillWidth
+        _maskLeftGradientLayer.frame.origin.x = _maskRightGradientLayer.frame.maxX + fillWidth
     }
 }
 
 // MARK: - FABView
 
-private enum FABViewState {
-    case Normal
-    case Expanded
-    case Expanding
-    case Contracting
-    case Panning
+var layout = true
+
+internal enum FABViewState {
+    case normal
+    case expanded
+    case expanding
+    case contracting
+    case panning
 }
 
-private let FABViewPOPAnimationExpandingKey = "FABViewPOPAnimationExpandingKey"
-private let FABViewPOPAnimationContractingKey = "FABViewPOPAnimationContractingKey"
+internal let FABViewPOPAnimationExpandingKey = "FABViewPOPAnimationExpandingKey"
+internal let FABViewPOPAnimationContractingKey = "FABViewPOPAnimationContractingKey"
 
 @IBDesignable
-class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
+open class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
+    
     // MARK: - FABView Appearance Parameters
-    private let _fabSize:CGFloat = 75
-    private let _fabMargin:CGFloat = 28
-    private let _fabIconToContentMargin:CGFloat = 10
-    private let _fabAntialias = true
-    private let _normalStateColor = UIColor(red:0.205, green:0.487, blue:1, alpha:1)
-    private let _activeStateColor = UIColor(red:0.327, green:0.624, blue:1, alpha:1)
+    internal let _fabSize:CGFloat = 75
+    internal let _fabMargin:CGFloat = 28
+    internal let _fabIconToContentMargin:CGFloat = 10
+    internal let _fabExpandedMaxWidth:CGFloat = 375
+    internal let _fabAntialias = true
+    internal let _normalStateColor = UIColor(red:0.205, green:0.487, blue:1, alpha:1)
+    internal let _activeStateColor = UIColor(red:0.327, green:0.624, blue:1, alpha:1)
     
     // MARK: Appearance Layers
-    private let _mainContainerLayer = ContentScrollContainerLayer()
-    private let _contentLayer = ContentLayer.init()
-    private let _contentScrollLayer = CAScrollLayer()
-    private let _contentLeftGradientMaskLayer = CALayer()
-    private let _iconLayer = CALayer()
-    
-    // MARK: Scroll Container Mask Layers
-    private let _scrollContainerLayer = CALayer()
-    private let _scrollContainerRightGradientMaskLayer = CALayer()
-    private let _scrollContainerMaskLayer = CALayer()
-    private let _scrollContainerFillMaskLayer = CALayer()
-    private var _scrollMaskGradientWidth:CGFloat?
+    internal let _mainContainerLayer = ContentScrollContainerLayer()
+    internal let _contentScrollLayer = UIScrollView()
+    internal let _contentLayer = ContentLayer.init()
+    internal let _iconLayer = CALayer()
 
     // MARK: Gesture Recognizers
-    private let _longTouchExpandRecognizer = UILongPressGestureRecognizer()
-    private let _touchHighlightRecognizer = UILongPressGestureRecognizer()
-    private let _longTouchContractRecognizer = UILongPressGestureRecognizer()
-    private let _doubleTapIconContractRecognizer = UILongPressGestureRecognizer()
-    private let _panGestureRecognizer = UIPanGestureRecognizer()
+    internal let _longTouchExpandRecognizer = UILongPressGestureRecognizer()
+    internal let _touchHighlightRecognizer = UILongPressGestureRecognizer()
+    internal let _longTouchContractRecognizer = UILongPressGestureRecognizer()
+    internal let _doubleTapIconContractRecognizer = UILongPressGestureRecognizer()
+    internal let _panGestureRecognizer = UIPanGestureRecognizer()
+    internal let _scrollGestureRecognizer = UIPanGestureRecognizer()
+    
+    internal var _panBeginOffset:CGFloat?
     
     // MARK: Operation Queues
-    private var _eventQueue:SingleEventQueue? = SingleEventQueue()
-    private var _highlightStateQueue:SingleEventQueue? = SingleEventQueue()
-    private var _lastHighlightOperation:NSOperation?
+    internal var _eventQueue:SingleEventQueue? = SingleEventQueue()
+    internal var _highlightStateQueue:SingleEventQueue? = SingleEventQueue()
+    internal var _lastHighlightOperation:Operation?
     
-    private var _state:FABViewState = FABViewState.Normal
+    internal var _state:FABViewState = FABViewState.normal
     
     // MARK: AutoLayout Constraints
-    private var _rightMarginConstraint:NSLayoutConstraint?
-    private var _bottomMarginConstraint:NSLayoutConstraint?
-    private var _widthConstraint:NSLayoutConstraint?
+    internal var _rightMarginConstraint:NSLayoutConstraint?
+    internal var _bottomMarginConstraint:NSLayoutConstraint?
+    internal var _widthConstraint:NSLayoutConstraint?
     
     // MARK: Generated Appearance Images
-    private var _normalImage:UIImage?
-    private var _highlightImage:UIImage?
+    internal var _normalImage:UIImage?
+    internal var _highlightImage:UIImage?
     
     // MARK: Animation Completion Blocks
-    private var _expandAnimationCompletionBlock:NSBlockOperation?
-    private var _contractAnimationCompletionBlock:NSBlockOperation?
-    
-    private var _panAnimationBeginTime:CFTimeInterval?
-    private var _panAnimationEndTime:CFTimeInterval?
+    internal var _expandAnimationCompletionBlock:BlockOperation?
+    internal var _contractAnimationCompletionBlock:BlockOperation?
     
     // MARK: FABView Initializer Methods
-    override init(frame: CGRect) {
+    override public init(frame: CGRect) {
         super.init(frame: frame)
         setup()
     }
     
-    required init(coder aDecoder: NSCoder) {
+    required public init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         setup()
     }
     
     // MARK: - FABView Setup Methods
-    private func setup() {
+    internal func setup() {
         self.preservesSuperviewLayoutMargins = false
         setTranslatesAutoresizingMaskIntoConstraints(false)
-        self.layoutMargins = UIEdgeInsetsZero
+        self.layoutMargins = UIEdgeInsets.zero
         
-//        _touchHighlightRecognizer.minimumPressDuration = 0.01
-//        _touchHighlightRecognizer.delegate = self
-//        _touchHighlightRecognizer.addTarget(self, action: Selector("touchHighlightAction:"))
-//        self.addGestureRecognizer(_touchHighlightRecognizer)
-//        
-//        _longTouchExpandRecognizer.minimumPressDuration = 0.5
-//        _longTouchExpandRecognizer.delegate = self
-//        _longTouchExpandRecognizer.addTarget(self, action: Selector("expandRecognizerAction:"))
-//        self.addGestureRecognizer(_longTouchExpandRecognizer)
-//        
-//        _longTouchContractRecognizer.minimumPressDuration = 0.5
-//        _longTouchContractRecognizer.delegate = self
-//        _longTouchContractRecognizer.addTarget(self, action: Selector("contractRecognizerAction:"))
-//        _longTouchContractRecognizer.enabled = false
-//        self.addGestureRecognizer(_longTouchContractRecognizer)
-//        
-//        _doubleTapIconContractRecognizer.minimumPressDuration = 0.01
-//        _doubleTapIconContractRecognizer.numberOfTapsRequired = 1
-//        _doubleTapIconContractRecognizer.delegate = self
-//        _doubleTapIconContractRecognizer.addTarget(self, action: Selector("contractRecognizerAction:"))
-//        _doubleTapIconContractRecognizer.enabled = false
-//        self.addGestureRecognizer(_doubleTapIconContractRecognizer)
+        _touchHighlightRecognizer.minimumPressDuration = 0.01
+        _touchHighlightRecognizer.delegate = self
+        _touchHighlightRecognizer.addTarget(self, action: #selector(FABView.touchHighlightAction(_:)))
+        self.addGestureRecognizer(_touchHighlightRecognizer)
         
-        _panGestureRecognizer.addTarget(self, action: Selector("panGestureAction:"))
+        _longTouchExpandRecognizer.minimumPressDuration = 0.5
+        _longTouchExpandRecognizer.delegate = self
+        _longTouchExpandRecognizer.addTarget(self, action: #selector(FABView.expandRecognizerAction(_:)))
+        self.addGestureRecognizer(_longTouchExpandRecognizer)
+        
+        _longTouchContractRecognizer.minimumPressDuration = 0.5
+        _longTouchContractRecognizer.delegate = self
+        _longTouchContractRecognizer.addTarget(self, action: #selector(FABView.contractRecognizerAction(_:)))
+        _longTouchContractRecognizer.isEnabled = false
+        self.addGestureRecognizer(_longTouchContractRecognizer)
+        
+        _doubleTapIconContractRecognizer.minimumPressDuration = 0.01
+        _doubleTapIconContractRecognizer.numberOfTapsRequired = 1
+        _doubleTapIconContractRecognizer.delegate = self
+        _doubleTapIconContractRecognizer.addTarget(self, action: #selector(FABView.contractRecognizerAction(_:)))
+        _doubleTapIconContractRecognizer.isEnabled = false
+        self.addGestureRecognizer(_doubleTapIconContractRecognizer)
+        
+        _panGestureRecognizer.addTarget(self, action: #selector(FABView.panGestureAction(_:)))
+        _panGestureRecognizer.delegate = self
         self.addGestureRecognizer(_panGestureRecognizer)
 
         self.setupNormalAndHighlightBackgroundImages()
-        self.layer.contentsScale = UIScreen.mainScreen().scale
+        self.layer.contentsScale = UIScreen.main.scale
+        self.layer.allowsGroupOpacity = false
         
         self.layer.addSublayer(_mainContainerLayer)
-        _mainContainerLayer.anchorPoint = CGPointMake(0, 0)
-        self.transform = CGAffineTransformMakeScale(-1, -1)
+        _mainContainerLayer.anchorPoint = CGPoint(x: 0, y: 0)
+        self.transform = CGAffineTransform(scaleX: -1, y: -1)
         
-        let contentSize = _contentLayer.preferredFrameSize()
-        _contentLayer.frame = CGRectMake(0, 0, contentSize.width, contentSize.height)
-        _contentLayer.setNeedsDisplay()
-        _contentLayer.needsDisplayOnBoundsChange = false
-        _contentLayer.contentsScale = UIScreen.mainScreen().scale
+        let contentSize = _contentLayer?.preferredFrameSize()
+        _contentLayer?.contentHugging = .required
+        _contentLayer?.performLayout()
+        //_contentLayer.frame = CGRectMake(0, 0, contentSize.width, contentSize.height)
+        _contentLayer?.setNeedsDisplay()
+        _contentLayer?.allowsGroupOpacity = false
+        _contentLayer?.needsDisplayOnBoundsChange = false
+        _contentLayer?.contentsScale = UIScreen.main.scale
 
-        let (mask, gradientWidth) = self.createLeftGradientMaskImage(contentSize)
-        _contentLeftGradientMaskLayer.contents = mask.CGImage
-        _contentLeftGradientMaskLayer.contentsScale = UIScreen.mainScreen().scale
-        _contentLeftGradientMaskLayer.frame = CGRectMake(0, 0, contentSize.width, contentSize.height)
+        let contentTranslate = CGAffineTransform(translationX: (contentSize?.width)!, y: (contentSize?.height)!)
+        let contentInvert = contentTranslate.scaledBy(x: -1, y: -1)
+        _contentScrollLayer.showsHorizontalScrollIndicator = false
+        _contentScrollLayer.showsVerticalScrollIndicator = false
+        _contentScrollLayer.contentSize = contentSize!
+        _contentScrollLayer.layer.allowsGroupOpacity = false
+        let contentScrollMaxSize = _fabExpandedMaxWidth
         
-        let contentTranslate = CGAffineTransformMakeTranslation(0, contentSize.height)
-        let contentInvert = CGAffineTransformScale(contentTranslate, -1, -1)
-        _contentScrollLayer.mask = _contentLeftGradientMaskLayer
-        _contentScrollLayer.frame = CGRectMake(0, -contentSize.height, contentSize.width, contentSize.height)
-        _contentScrollLayer.contentsScale = UIScreen.mainScreen().scale
-        _contentScrollLayer.addSublayer(_contentLayer)
-        _contentScrollLayer.transform = CATransform3DMakeAffineTransform(contentInvert)
-        _mainContainerLayer._scrollContainerLayer.addSublayer(_contentScrollLayer)
+        _contentScrollLayer.layer.frame = CGRect(x: -contentScrollMaxSize + _fabMargin, y: -contentSize?.height, width: contentScrollMaxSize , height: (contentSize?.height)!)
+        _contentScrollLayer.layer.addSublayer(_contentLayer!)
+        _contentScrollLayer.layer.transform = CATransform3DMakeAffineTransform(contentInvert)
+        _mainContainerLayer._scrollContainerLayer.addSublayer(_contentScrollLayer.layer)
         
-        _mainContainerLayer.setup(contentSize, gradientWidth: gradientWidth, fabSize: _fabSize, fabMargin: _fabMargin)
-        _mainContainerLayer._scrollContainerLayer.frame = CGRectMake(-(contentSize.width - _fabSize/2 - _fabMargin) - _fabIconToContentMargin, ((_fabSize + _fabMargin*2)/2 - contentSize.height/2), contentSize.width, contentSize.height)
+        self.addGestureRecognizer(_contentScrollLayer.panGestureRecognizer)
         
-        _iconLayer.contents = self.createIconImage()?.CGImage
+        _contentScrollLayer.panGestureRecognizer.require(toFail: _panGestureRecognizer)
+        
+        _mainContainerLayer.allowsGroupOpacity = false
+        _mainContainerLayer.setup(contentSize!, fabSize: _fabSize, fabMargin: _fabMargin, expandedSize: _fabExpandedMaxWidth)
+        _mainContainerLayer._scrollContainerLayer.frame = CGRect(x: -((contentSize?.width)! - _fabSize/2 - _fabMargin) - _fabIconToContentMargin, y: ((_fabSize + _fabMargin*2)/2 - (contentSize?.height)!/2), width: (contentSize?.width)!, height: (contentSize?.height)!)
+        
+        _iconLayer.contents = self.createIconImage()?.cgImage
         _iconLayer.contentsGravity = kCAGravityCenter
-        _iconLayer.contentsScale = UIScreen.mainScreen().scale
+        _iconLayer.allowsGroupOpacity = false
+        _iconLayer.contentsScale = UIScreen.main.scale
         _mainContainerLayer.addSublayer(_iconLayer)
         
     }
     
-    private func setupNormalAndHighlightBackgroundImages() {
+    internal func setupNormalAndHighlightBackgroundImages() {
         
-        let size = CGSizeMake(_fabSize, _fabSize)
-        let bound = CGSizeMake(_fabSize + (_fabMargin*2), _fabSize + (_fabMargin*2))
-        let path = UIBezierPath(roundedRect: CGRectMake(floor(bound.width/2 - size.width/2), floor(bound.height/2 - size.height/2), size.width, size.height), cornerRadius: size.width/2)
+        let size = CGSize(width: _fabSize, height: _fabSize)
+        let bound = CGSize(width: _fabSize + (_fabMargin*2), height: _fabSize + (_fabMargin*2))
+        let path = UIBezierPath(roundedRect: CGRect(x: floor(bound.width/2 - size.width/2), y: floor(bound.height/2 - size.height/2), width: size.width, height: size.height), cornerRadius: size.width/2)
         path.flatness = 0.0
         
-        let scale = _fabAntialias ? CGFloat(4) : UIScreen.mainScreen().scale
+        let scale = _fabAntialias ? CGFloat(4) : UIScreen.main.scale
         
         UIGraphicsBeginImageContextWithOptions(bound, false, (_fabAntialias ? 4 : 0))
         var ctx = UIGraphicsGetCurrentContext()
-        CGContextSetShadowWithColor(ctx, CGSizeMake(0, -7), 9, UIColor(white: 0.0, alpha: 0.3).CGColor)
-        CGContextSetFillColorWithColor(ctx, _normalStateColor.CGColor)
-        CGContextAddPath(ctx, path.CGPath)
-        CGContextDrawPath(ctx, kCGPathFill)
+        ctx?.setShadow(offset: CGSize(width: 0, height: -7), blur: 9, color: UIColor(white: 0.0, alpha: 0.3).cgColor)
+        ctx?.setFillColor(_normalStateColor.cgColor)
+        ctx?.addPath(path.cgPath)
+        ctx.drawPath(using: kCGPathFill)
         let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         _normalImage = image
         
-        _mainContainerLayer.contents = image.CGImage
+        _mainContainerLayer.contents = image?.cgImage
         _mainContainerLayer.contentsScale = scale
         _mainContainerLayer.allowsEdgeAntialiasing = true
         _mainContainerLayer.edgeAntialiasingMask = CAEdgeAntialiasingMask.LayerBottomEdge | CAEdgeAntialiasingMask.LayerLeftEdge | CAEdgeAntialiasingMask.LayerRightEdge | CAEdgeAntialiasingMask.LayerTopEdge
-        let imageXOffset = (image.size.width-1)/2
-        _mainContainerLayer.contentsCenter = CGRectMake((imageXOffset * scale)/(bound.width * scale),0.0/(bound.height * scale),1.0/(bound.width * scale),1.0/(bound.height * scale))
+        let imageXOffset = ((image?.size.width)!-1)/2
+        _mainContainerLayer.contentsCenter = CGRect(x: (imageXOffset * scale)/(bound.width * scale),y: 0.0/(bound.height * scale),width: 1.0/(bound.width * scale),height: 1.0/(bound.height * scale))
         
         UIGraphicsBeginImageContextWithOptions(bound, false, (_fabAntialias ? 4 : 0))
         ctx = UIGraphicsGetCurrentContext()
-        CGContextSetShadowWithColor(ctx, CGSizeMake(0, -10), 9, UIColor(white: 0.0, alpha: 0.3).CGColor)
-        CGContextSetFillColorWithColor(ctx, _activeStateColor.CGColor)
-        CGContextAddPath(ctx, path.CGPath)
-        CGContextDrawPath(ctx, kCGPathFill)
+        ctx?.setShadow(offset: CGSize(width: 0, height: -10), blur: 9, color: UIColor(white: 0.0, alpha: 0.3).cgColor)
+        ctx?.setFillColor(_activeStateColor.cgColor)
+        ctx?.addPath(path.cgPath)
+        ctx.drawPath(using: kCGPathFill)
         _highlightImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
     }
     
-    private func createIconImage() -> UIImage? {
+    internal func createIconImage() -> UIImage? {
         let loadedImage = UIImage(named:"ic_add_black_ios_24dp")
         if loadedImage == nil {
             return nil
         }
         let image = loadedImage!
-        var ctx:CGContextRef? = nil
-        let imageRect = CGRectMake(0, 0, image.size.width, image.size.height)
+        var ctx:CGContext? = nil
+        let imageRect = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
         
         UIGraphicsBeginImageContextWithOptions(imageRect.size, false, 0)
         ctx = UIGraphicsGetCurrentContext()!
-        CGContextSetFillColorWithColor(ctx, UIColor.whiteColor().CGColor)
-        CGContextClipToMask(ctx, imageRect, image.CGImage)
-        CGContextFillRect(ctx, imageRect)
+        ctx?.setFillColor(UIColor.white.cgColor)
+        ctx?.clip(to: imageRect, mask: image.cgImage!)
+        ctx?.fill(imageRect)
         let maskedImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         
         return maskedImage
     }
     
-    private func createLeftGradientMaskImage(maskSize: CGSize) -> (UIImage, CGFloat) {
-        
-        let gradientWidth:CGFloat = 0.2
-        UIGraphicsBeginImageContextWithOptions(maskSize, false, 0)
-        let ctx = UIGraphicsGetCurrentContext()
-        
-        let locs: [CGFloat] = [0.0, gradientWidth]
-        let colors: [CGColorRef] = [UIColor.clearColor().CGColor, UIColor.whiteColor().CGColor]
-        let gradient = CGGradientCreateWithColors(CGColorSpaceCreateDeviceRGB(), colors, locs)
-        CGContextDrawLinearGradient(ctx, gradient, CGPointZero, CGPointMake(maskSize.width, 0), CGGradientDrawingOptions(0))
-        
-        let mask = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        let maskGradientWidth = floor(gradientWidth * maskSize.width)
-        _scrollMaskGradientWidth = maskGradientWidth
-        return (mask, maskGradientWidth)
-    }
-    
     // MARK: - UIView Override Methods
     
-    override func alignmentRectInsets() -> UIEdgeInsets {
-        return UIEdgeInsetsZero
+    override open var alignmentRectInsets : UIEdgeInsets {
+        return UIEdgeInsets.zero
     }
     
-    override func intrinsicContentSize() -> CGSize {
-        if self._state == FABViewState.Expanded {
-            return CGSizeMake(375, 131)
+    override open var intrinsicContentSize : CGSize {
+        let fabBoundSize = _fabSize + _fabMargin*2
+        if self._state == FABViewState.expanded {
+            return CGSize(width: _fabExpandedMaxWidth, height: fabBoundSize)
         } else {
-            return CGSizeMake(131, 131)
+            return CGSize(width: fabBoundSize, height: fabBoundSize)
         }
     }
     
-    override class func requiresConstraintBasedLayout() -> Bool {
+    override open class var requiresConstraintBasedLayout : Bool {
         return true
     }
     
-    override func layoutSubviews() {
+    override open func layoutSubviews() {
         super.layoutSubviews()
-        if (self._state == FABViewState.Expanding || self._state == FABViewState.Contracting || self._state == FABViewState.Panning) {
+        if (self._state == FABViewState.expanding || self._state == FABViewState.contracting || self._state == FABViewState.panning) {
             return
         }
         
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.0)
         
-        if (self._state == FABViewState.Expanded) {
+        if (self._state == FABViewState.expanded) {
             
         } else {
             _mainContainerLayer.bounds = self.bounds
@@ -413,18 +445,18 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     // MARK: AutoLayout Constraint Management
     
-    override func didMoveToSuperview() {
+    override open func didMoveToSuperview() {
         if (self.superview != nil) {
             let superview = self.superview!
-            let size = self.intrinsicContentSize()
+            let size = self.intrinsicContentSize
             
-            let width = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: nil, attribute: NSLayoutAttribute.NotAnAttribute, multiplier: 1, constant: size.width)
+            let width = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: nil, attribute: NSLayoutAttribute.notAnAttribute, multiplier: 1, constant: size.width)
             _widthConstraint = width
             
-            let rightTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.Trailing, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Trailing, multiplier: 1, constant:0)
+            let rightTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.trailing, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.trailing, multiplier: 1, constant:0)
             _rightMarginConstraint = rightTrailMargin
             
-            let bottomTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.Baseline, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.BottomMargin, multiplier: 1, constant:0)
+            let bottomTrailMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.lastBaseline, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.bottomMargin, multiplier: 1, constant:0)
             _bottomMarginConstraint = bottomTrailMargin
             
             
@@ -432,7 +464,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         }
     }
     
-    override func willMoveToSuperview(newSuperview: UIView?) {
+    override open func willMove(toSuperview newSuperview: UIView?) {
         if self.superview != nil {
             let superview = self.superview!
             if _rightMarginConstraint != nil {
@@ -450,10 +482,10 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     // MARK: Touch Recognition
     
-    override func pointInside(point: CGPoint, withEvent event: UIEvent?) -> Bool {
-        let inside = super.pointInside(point, withEvent: event)
-        let convertedPoint = self.layer.convertPoint(point, toLayer: self._mainContainerLayer)
-        let hit = self._mainContainerLayer.containsPoint(convertedPoint)
+    override open func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let inside = super.point(inside: point, with: event)
+        let convertedPoint = self.layer.convert(point, to: self._mainContainerLayer)
+        let hit = self._mainContainerLayer.contains(convertedPoint)
         
         //NSLog("%@ hit", NSNumber(bool: hit))
         //NSLog("%@ hitP", NSStringFromCGPoint(point))
@@ -465,36 +497,36 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     // MARK: - State Methods
     
-    func setNormalAppearance() {
+    internal func setNormalAppearance() {
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.0)
-        _mainContainerLayer.contents = self._normalImage!.CGImage
+        _mainContainerLayer.contents = self._normalImage!.cgImage
         CATransaction.commit()
     }
     
-    func setHighlightedAppearance() {
-        if (self._state != FABViewState.Normal) {
-            fatalError("FABView cannot display highlighted appearance if not in normal state")
+    internal func setHighlightedAppearance() {
+        if (self._state != FABViewState.normal) {
+            return
         }
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.0)
-        _mainContainerLayer.contents = self._highlightImage!.CGImage
+        _mainContainerLayer.contents = self._highlightImage!.cgImage
         CATransaction.commit()
     }
     
-    func updateGestureRecognizersState() {
+    internal func updateGestureRecognizersState() {
         switch self._state {
-        case FABViewState.Normal:
-            self._touchHighlightRecognizer.enabled = true
-            self._longTouchExpandRecognizer.enabled = true
-            self._longTouchContractRecognizer.enabled = false
-            self._doubleTapIconContractRecognizer.enabled = false
+        case FABViewState.normal:
+            self._touchHighlightRecognizer.isEnabled = true
+            self._longTouchExpandRecognizer.isEnabled = true
+            self._longTouchContractRecognizer.isEnabled = false
+            self._doubleTapIconContractRecognizer.isEnabled = false
             break;
-        case FABViewState.Expanded:
-            self._touchHighlightRecognizer.enabled = false
-            self._longTouchExpandRecognizer.enabled = false
-            self._longTouchContractRecognizer.enabled = true
-            self._doubleTapIconContractRecognizer.enabled = true
+        case FABViewState.expanded:
+            self._touchHighlightRecognizer.isEnabled = false
+            self._longTouchExpandRecognizer.isEnabled = false
+            self._longTouchContractRecognizer.isEnabled = true
+            self._doubleTapIconContractRecognizer.isEnabled = true
             break;
         default:
             break;
@@ -503,69 +535,73 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     // MARK: - Animation Methods
     
-    func setExpandedWidthAppearanceAnimated(animated: Bool, completion: (() -> Void)?) {
-        self._state = FABViewState.Expanded
+    internal func setExpandedWidthAppearanceAnimated(_ animated: Bool, velocity: CGPoint, completion: (() -> Void)?) {
+        self._state = FABViewState.expanded
         self.updateGestureRecognizersState()
         
-        let size = self.intrinsicContentSize()
-        let toRect = CGRectIntegral(CGRectMake(-(size.width-self._iconLayer.frame.size.width), 0, size.width, size.height))
+        let size = self.intrinsicContentSize
+        let toRect = CGRect(x: -(size.width-self._iconLayer.frame.size.width), y: 0, width: size.width, height: size.height).integral
         
         self.invalidateIntrinsicContentSize()
         
         if (animated) {
             
-            self._state = FABViewState.Expanding
+            self._state = FABViewState.expanding
             
             let pop = POPSpringAnimation(propertyNamed: kPOPLayerBounds)
-            pop.toValue = NSValue(CGRect: toRect)
-            pop.removedOnCompletion = false
+            pop?.toValue = NSValue(cgRect: toRect)
+            pop?.removedOnCompletion = false
+            pop?.velocity = NSValue(cgRect: CGRect(x: 0, y: 0, width: velocity.x, height: 0))
             //pop.springBounciness = 0.01
             //pop.springSpeed = 0.1
-            //pop.springBounciness = 25.1
-            //pop.springSpeed = 25.4
+            pop?.springBounciness = 12
+            pop?.springSpeed = 10
             //            pop.dynamicsTension = 150
             //            pop.dynamicsFriction = 10
             //            pop.dynamicsMass = 1
-            pop.delegate = self
+            pop?.delegate = self
             if completion != nil {
-                _expandAnimationCompletionBlock = NSBlockOperation(block: completion!)
+                _expandAnimationCompletionBlock = BlockOperation(block: completion!)
             }
             
-            self._mainContainerLayer.pop_addAnimation(pop, forKey: FABViewPOPAnimationExpandingKey)
+            self._mainContainerLayer.pop_add(pop, forKey: FABViewPOPAnimationExpandingKey)
         } else {
             self._mainContainerLayer.bounds = toRect
         }
     }
     
-    func setContractedWidthAppearanceAnimated(animated: Bool, completion: (() -> Void)?) {
-        self._state = FABViewState.Normal
+    internal func setContractedWidthAppearanceAnimated(_ animated: Bool, velocity: CGPoint, completion: (() -> Void)?) {
+        self._state = FABViewState.normal
         self.updateGestureRecognizersState()
         
-        let size = self.intrinsicContentSize()
-        let toRect = CGRectIntegral(CGRectMake(abs(-(size.width-self._iconLayer.frame.size.width)), 0, size.width, size.height))
+        let size = self.intrinsicContentSize
+        let toRect = CGRect(x: abs(-(size.width-self._iconLayer.frame.size.width)), y: 0, width: size.width, height: size.height).integral
         
         self.invalidateIntrinsicContentSize()
         
+        self._contentScrollLayer.setContentOffset(CGPoint.zero, animated: false)
+        
         if (animated) {
             
-            self._state = FABViewState.Contracting
+            self._state = FABViewState.contracting
             
             let pop = POPSpringAnimation(propertyNamed: kPOPLayerBounds)
-            pop.toValue = NSValue(CGRect: toRect)
-            pop.removedOnCompletion = false
+            pop?.toValue = NSValue(cgRect: toRect)
+            pop?.removedOnCompletion = false
+            pop?.velocity = NSValue(cgRect:CGRect(x: 0, y: 0, width: velocity.x, height: 0))
             //pop.springBounciness = 0.1
             //pop.springSpeed = 0.1
-            //pop.springBounciness = 25.1
-            //pop.springSpeed = 25.4
+            pop?.springBounciness = 12
+            pop?.springSpeed = 10
             //            pop.dynamicsTension = 150
             //            pop.dynamicsFriction = 10
             //            pop.dynamicsMass = 1
-            pop.delegate = self
+            pop?.delegate = self
             if completion != nil {
-                _contractAnimationCompletionBlock = NSBlockOperation(block: completion!)
+                _contractAnimationCompletionBlock = BlockOperation(block: completion!)
             }
             
-            self._mainContainerLayer.pop_addAnimation(pop, forKey: FABViewPOPAnimationContractingKey)
+            self._mainContainerLayer.pop_add(pop, forKey: FABViewPOPAnimationContractingKey)
         } else {
             self._mainContainerLayer.bounds = toRect
         }
@@ -573,31 +609,31 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     // MARK: - Gesture Recognizer methods
     
-    func touchHighlightAction(gc: UILongPressGestureRecognizer) {
+    func touchHighlightAction(_ gc: UILongPressGestureRecognizer) {
         
-        if gc.state == UIGestureRecognizerState.Began {
+        if gc.state == UIGestureRecognizerState.began {
             
-            let blockOperation = NSBlockOperation()
+            let blockOperation = BlockOperation()
             weak var weakSelf = self
             weak var weakBlockOperation = blockOperation
             
             blockOperation.addExecutionBlock({() in
-                if weakBlockOperation != nil && weakBlockOperation!.cancelled {
+                if weakBlockOperation != nil && weakBlockOperation!.isCancelled {
                     return
                 }
                 
-                if var strongSelf = weakSelf {
+                if let strongSelf = weakSelf {
                     strongSelf._highlightStateQueue?.cancelAllOperations()
                     strongSelf._highlightStateQueue = nil
                 }
                 
-                dispatch_async(dispatch_get_main_queue()) {
+                DispatchQueue.main.async {
                     weakSelf?.setHighlightedAppearance()
                 }
                 
-                let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.4 * Double(NSEC_PER_SEC)))
-                dispatch_after(delayTime, dispatch_get_main_queue()) {
-                    if weakBlockOperation != nil && weakBlockOperation!.cancelled {
+                let delayTime = DispatchTime.now() + Double(Int64(0.4 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+                DispatchQueue.main.asyncAfter(deadline: delayTime) {
+                    if weakBlockOperation != nil && weakBlockOperation!.isCancelled {
                         return
                     }
                     weakSelf?.setNormalAppearance()
@@ -605,7 +641,7 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
             })
             _highlightStateQueue?.addOperations([blockOperation], waitUntilFinished: true)
                 
-        } else if gc.state == UIGestureRecognizerState.Ended || gc.state == UIGestureRecognizerState.Cancelled {
+        } else if gc.state == UIGestureRecognizerState.ended || gc.state == UIGestureRecognizerState.cancelled {
             self.setNormalAppearance()
             
             _lastHighlightOperation?.cancel()
@@ -613,111 +649,88 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         }
     }
     
-    func panGestureAction(gc: UIPanGestureRecognizer) {
+    func panGestureAction(_ gc: UIPanGestureRecognizer) {
         switch gc.state {
-        case UIGestureRecognizerState.Began:
+        case UIGestureRecognizerState.began:
             
-            self._state = FABViewState.Expanded
-//            self.updateGestureRecognizersState()
-//            
-//            let size = self.intrinsicContentSize()
-//            let toRect = CGRectIntegral(CGRectMake(-(size.width-self._iconLayer.frame.size.width), 0, size.width, size.height))
-//            
-//            self.invalidateIntrinsicContentSize()
-
-            //self._state = FABViewState.Panning
-
-//            let pop = POPBasicAnimation(propertyNamed: kPOPLayerBounds)
-//            pop.toValue = NSValue(CGRect: toRect)
-//            pop.duration = 1.0
-//            pop.removedOnCompletion = false
-//            po
-//            let anim = CABasicAnimation(keyPath: "bounds")
-//            anim.toValue = NSValue(CGRect: toRect)
-//            anim.duration = 1.0
-//            anim.removedOnCompletion = false
-//            anim.delegate = self
-//            self._mainContainerLayer.addAnimation(anim, forKey: "pan")
-//
-            //self._mainContainerLayer.speed = 0.0
-            //let beginTime:CFTimeInterval = CACurrentMediaTime()
-            //self._panAnimationBeginTime = beginTime
-            //self._panAnimationEndTime = beginTime + anim.duration
+            self._state = FABViewState.expanded
             
-            NSLog("%@", NSStringFromCGRect(self.layer.bounds))
-            NSLog("%@", NSStringFromCGRect(self._mainContainerLayer.bounds))
+            let gcPoint = gc.location(in: gc.view)
+            let containerPoint = self.layer.convert(gcPoint, to: self._mainContainerLayer)
+            let iconPoint = self._mainContainerLayer.convert(containerPoint, to: self._iconLayer)
+            if (!self._iconLayer.contains(iconPoint)) {
+                gc.isEnabled = false
+                gc.isEnabled = true
+            }
             
             break;
-        case UIGestureRecognizerState.Changed:
+        case UIGestureRecognizerState.changed:
             
-            let point = gc.locationInView(self)
-        
-            self._mainContainerLayer.bounds.origin.x = -(point.x - self._iconLayer.frame.size.width)
-            self._mainContainerLayer.bounds.size.width = point.x
-            //self._mainContainerLayer.layoutSublayers()
-            //self._mainContainerLayer.bounds = CGRectIntegral(CGRectMake(-(point.x-self._iconLayer.frame.size.width), 0, point.x, 131))
-
+            let point = gc.location(in: self)
+            CATransaction.begin()
+            CATransaction.setAnimationDuration(0.1)
             
-//
-//            if self._panAnimationBeginTime != nil {
-//                let beginTime = self._panAnimationBeginTime!
-//                let pointInTime = 1.0/(point.x / 280)
-//                self._mainContainerLayer.timeOffset = CFTimeInterval(pointInTime) + beginTime
-//                
-//            }
-//            NSLog("%@", NSStringFromCGPoint(point))
+            let fromRect = self._mainContainerLayer.bounds
+            var toRect = fromRect
+            toRect.origin.x = -(point.x - self._iconLayer.frame.size.width)
+            toRect.size.width = point.x
+            self._mainContainerLayer.bounds = toRect
+            
+            CATransaction.commit()
+  
             break;
-        case UIGestureRecognizerState.Ended:
+        case UIGestureRecognizerState.ended:
             
-            break;
-        case UIGestureRecognizerState.Cancelled:
-            
-            break;
-        case UIGestureRecognizerState.Failed:
+            let velocity = gc.velocity(in: gc.view)
+            if (velocity.x > 0) {
+                self.setExpandedWidthAppearanceAnimated(true, velocity: velocity, completion: nil)
+            } else {
+                self.setContractedWidthAppearanceAnimated(true, velocity: velocity, completion: nil)
+            }
             
             break;
-        case UIGestureRecognizerState.Possible:
-            
+        case UIGestureRecognizerState.cancelled, UIGestureRecognizerState.failed:
+            NSLog("pan gc failed or cancelled")
             break;
         default:
             break;
         }
     }
     
-    func expandRecognizerAction(gc: UILongPressGestureRecognizer) {
+    func expandRecognizerAction(_ gc: UILongPressGestureRecognizer) {
 
-        if gc.state != UIGestureRecognizerState.Began {
+        if gc.state != UIGestureRecognizerState.began {
             return
         }
         
-        let blockOperation = NSBlockOperation()
+        let blockOperation = BlockOperation()
         weak var weakSelf = self
         weak var weakBlockOperation = blockOperation
         
         blockOperation.addExecutionBlock({() in
             if weakBlockOperation != nil {
-                if weakBlockOperation!.cancelled {
+                if weakBlockOperation!.isCancelled {
                     return
                 }
             }
             
-            if var strongSelf = weakSelf {
+            if let strongSelf = weakSelf {
                 strongSelf._eventQueue?.cancelAllOperations()
                 strongSelf._eventQueue = nil
             }
             
-            var expandWidth:() -> Void = {() in
-                weakSelf?.setExpandedWidthAppearanceAnimated(true, completion: {() in
-                    if var strongSelf = weakSelf {
+            let expandWidth:() -> Void = {() in
+                weakSelf?.setExpandedWidthAppearanceAnimated(true, velocity: CGPoint.zero, completion: {() in
+                    if let strongSelf = weakSelf {
                         strongSelf._eventQueue = SingleEventQueue()
                     }
                 })
             }
             
-            if NSThread.isMainThread() {
+            if Thread.isMainThread {
                 expandWidth()
             } else {
-                dispatch_async(dispatch_get_main_queue()) {
+                DispatchQueue.main.async {
                     expandWidth()
                 }
             }
@@ -727,46 +740,46 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
         
     }
     
-    func contractRecognizerAction(gc: UILongPressGestureRecognizer) {
-        if gc.state != UIGestureRecognizerState.Began {
+    func contractRecognizerAction(_ gc: UILongPressGestureRecognizer) {
+        if gc.state != UIGestureRecognizerState.began {
             return
         }
         
-        let gcPoint = gc.locationInView(self)
-        let layerPoint = self.layer.convertPoint(gcPoint, toLayer: self._mainContainerLayer)
-        let iconPoint = self._mainContainerLayer.convertPoint(layerPoint, toLayer: self._iconLayer)
-        if (!self._iconLayer.containsPoint(iconPoint)) {
+        let gcPoint = gc.location(in: self)
+        let layerPoint = self.layer.convert(gcPoint, to: self._mainContainerLayer)
+        let iconPoint = self._mainContainerLayer.convert(layerPoint, to: self._iconLayer)
+        if (!self._iconLayer.contains(iconPoint)) {
             return
         }
         
-        let blockOperation = NSBlockOperation()
+        let blockOperation = BlockOperation()
         weak var weakSelf = self
         weak var weakBlockOperation = blockOperation
         
         blockOperation.addExecutionBlock({() in
             if weakBlockOperation != nil {
-                if weakBlockOperation!.cancelled {
+                if weakBlockOperation!.isCancelled {
                     return
                 }
                 
             }
-            if var strongSelf = weakSelf {
+            if let strongSelf = weakSelf {
                 strongSelf._eventQueue?.cancelAllOperations()
                 strongSelf._eventQueue = nil
             }
             
-            var contractWidth:() -> Void = {() in
-                weakSelf?.setContractedWidthAppearanceAnimated(true) {() in
-                    if var strongSelf = weakSelf {
+            let contractWidth:() -> Void = {() in
+                weakSelf?.setContractedWidthAppearanceAnimated(true, velocity: CGPoint.zero) {() in
+                    if let strongSelf = weakSelf {
                         strongSelf._eventQueue = SingleEventQueue()
                     }
                 }
             }
             
-            if NSThread.isMainThread() {
+            if Thread.isMainThread {
                 contractWidth()
             } else {
-                dispatch_async(dispatch_get_main_queue()) {
+                DispatchQueue.main.async {
                     contractWidth()
                 }
             }
@@ -776,44 +789,52 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
     
     // MARK: - Gesture Recognizer Delegate Methods
     
-    func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if (gestureRecognizer == _touchHighlightRecognizer && otherGestureRecognizer == _longTouchExpandRecognizer) || (gestureRecognizer == _longTouchExpandRecognizer && otherGestureRecognizer == _touchHighlightRecognizer) {
-            return true
-        }
-        if (gestureRecognizer == _doubleTapIconContractRecognizer && otherGestureRecognizer == _longTouchContractRecognizer) ||
-            (gestureRecognizer == _longTouchContractRecognizer && otherGestureRecognizer == _doubleTapIconContractRecognizer) {
-            return true
-        }
-        return false
+    open func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+//        if (gestureRecognizer == _touchHighlightRecognizer && otherGestureRecognizer == _longTouchExpandRecognizer) || (gestureRecognizer == _longTouchExpandRecognizer && otherGestureRecognizer == _touchHighlightRecognizer) {
+//            return true
+//        }
+//        if (gestureRecognizer == _doubleTapIconContractRecognizer && otherGestureRecognizer == _longTouchContractRecognizer) ||
+//            (gestureRecognizer == _longTouchContractRecognizer && otherGestureRecognizer == _doubleTapIconContractRecognizer) {
+//            return true
+//        }
+//        if gestureRecognizer == self._panGestureRecognizer || otherGestureRecognizer == self._panGestureRecognizer {
+//            return false
+//        }
+        return true
     }
     
 //    override func hitTest(point: CGPoint, withEvent event: UIEvent?) -> UIView? {
 //        let hit = super.hitTest(point, withEvent: event)
-//        if hit != nil {
-//            NSLog("%@", hit!)
-//        } else {
-//            NSLog("nope")
+//        let containerPoint = self.convertPoint(point, toView: self._contentScrollLayer)
+//        //let scrollPoint = self._mainContainerLayer.convertPoint(point, toLayer: self._contentScrollLayer.layer)
+//        if (self._contentScrollLayer.pointInside(containerPoint, withEvent: event)) {
+//            return self._contentScrollLayer
 //        }
+////        if hit != nil {
+////            NSLog("%@", hit!)
+////        } else {
+////            NSLog("nope")
+////        }
 //        return hit
 //    }
     
     // MARK: - CAAnimation Delegate Methods
-    override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
-        NSLog("%@", anim)
-    }
+//    override public func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
+//        NSLog("%@", anim)
+//    }
     
     // MARK: - POP Delegate Methods
     
-    func pop_animationDidStop(anim: POPAnimation!, finished: Bool) {
-        if anim == self._mainContainerLayer.pop_animationForKey(FABViewPOPAnimationExpandingKey) as? POPAnimation {
+    open func pop_animationDidStop(_ anim: POPAnimation!, finished: Bool) {
+        if anim == self._mainContainerLayer.pop_animation(forKey: FABViewPOPAnimationExpandingKey) as? POPAnimation {
             if finished {
                 weak var weakSelf = self
                 if self._expandAnimationCompletionBlock != nil {
                     let completion = self._expandAnimationCompletionBlock!
                     completion.completionBlock = {() -> Void in
-                        dispatch_async(dispatch_get_main_queue()) {
-                            if var strongSelf = weakSelf {
-                                strongSelf._state = FABViewState.Expanded
+                        DispatchQueue.main.async {
+                            if let strongSelf = weakSelf {
+                                strongSelf._state = FABViewState.expanded
                                 strongSelf._mainContainerLayer.pop_removeAllAnimations()
                                 strongSelf._expandAnimationCompletionBlock = nil
                             }
@@ -823,15 +844,15 @@ class FABView: UIView, UIGestureRecognizerDelegate,POPAnimationDelegate  {
                 }
             }
         }
-        if anim == self._mainContainerLayer.pop_animationForKey(FABViewPOPAnimationContractingKey) as? POPAnimation {
+        if anim == self._mainContainerLayer.pop_animation(forKey: FABViewPOPAnimationContractingKey) as? POPAnimation {
             if finished {
                 weak var weakSelf = self
                 if self._contractAnimationCompletionBlock != nil {
                     let completion = self._contractAnimationCompletionBlock!
                     completion.completionBlock = {() -> Void in
-                        dispatch_async(dispatch_get_main_queue()) {
-                            if var strongSelf = weakSelf {
-                                strongSelf._state = FABViewState.Normal
+                        DispatchQueue.main.async {
+                            if let strongSelf = weakSelf {
+                                strongSelf._state = FABViewState.normal
                                 strongSelf._mainContainerLayer.pop_removeAllAnimations()
                                 strongSelf._contractAnimationCompletionBlock = nil
                             }

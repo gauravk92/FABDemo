@@ -1,10 +1,13 @@
 PODS:
   - pop (1.0.7)
+  - Surge (0.2.1)
 
 DEPENDENCIES:
   - pop
+  - surge
 
 SPEC CHECKSUMS:
   pop: 628ffc631644601567ee8bfaaaea493ebd7d0923
+  Surge: 7f67f9dbd0e837fe2d94ad5326fe14e9fdbea690
 
 COCOAPODS: 0.36.4
